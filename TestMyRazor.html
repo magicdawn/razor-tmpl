@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="RazorJs.js"></script>
+
+</head>
+<body>
+<script type="text/template" id="my-razor-temp">
+    @{
+        var data=10;
+        //alert("hello");
+        var hello='hello world ...';
+        var vbool=false;
+    }
+    <div>@(data)</div>
+    @if(vbool)
+    {
+        <div>@(hello)</div>
+    }
+    <span>@(hello)</span>
+    <div>@(ViewBag.list.length)</div>
+</script>
+<script>
+    $(function(){
+        var tmpl=$("#my-razor-temp").html();
+        var ViewBag={
+            list:[1,2,3]
+        };
+        var html=razor.render(tmpl,ViewBag);
+    });
+</script>
+</body>
+</html>

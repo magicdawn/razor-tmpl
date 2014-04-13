@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../RazorJs.js"></script>
+    <script>
+        $(function () {
+            razor.changeSymbol('~');
+            $("#test-template").quickRender();
+        });
+    </script>
+</head>
+<body>
+    <div style="text-align:center;">
+        <div>
+            <script type="text/template" id="test-template">
+                ~{
+                    var vfalse=false;
+                    var vtrue=true;
+                }
+                ~if(vtrue)
+                {
+                    <div>~(vtrue)</div>
+                }
+                ~for(var i=0;i < 10;i++)
+                {
+                    <div>~(vfalse)</div>
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

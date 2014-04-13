@@ -1,0 +1,12 @@
+模仿kino.razor所写的前端模版库
+
+@{
+
+}
+<div>@(data)</div>
+@if(ViewBag.Person.IsAdult)
+{
+    //ViewBag特殊变量
+    //razor.render(template,ViewBag);
+    <div>@(new Date() )</div>
+}
