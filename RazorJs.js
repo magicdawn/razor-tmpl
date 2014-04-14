@@ -359,7 +359,10 @@
                 segments = segments.concat(innerSegments);
 
                 //最后一个}
-                segments.push(new Segment('}',ESegmentType.CodeBlock));
+                if (loop.symbol)
+                {
+                    segments.push(new Segment('}', ESegmentType.CodeBlock));
+                }
 
                 //最后结果
                 var html = SegmentCompiler.compile(segments)(ViewBag);
