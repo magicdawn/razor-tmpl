@@ -24,11 +24,14 @@
 </script>
 <script>
     $(function(){
-        var tmpl=$("#my-razor-temp").html();
-        var ViewBag={
-            list:[1,2,3]
-        };
-        var html=razor.render(tmpl,ViewBag);
+        var template=$("#my-razor-temp").html();
+        //var ViewBag={
+        //    list:[1,2,3]
+        //};
+        //var html=razor.render(tmpl,ViewBag);
+
+        var segments = SegementProcesser.process(template);
+        console.log(segments);
     });
 </script>
 </body>

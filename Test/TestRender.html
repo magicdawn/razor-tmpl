@@ -18,6 +18,14 @@
             <script type="text/template" id="date-template">
                 @{
                     var d=new Date();
+                    var i=10;
+                }
+                @while(i>0)
+                {
+                    <div>@(i)</div>
+                    @{
+                        i--;
+                    }
                 }
                 今天是@(d.getYear()) 年 @(d.getMonth()) 月 @(d.getDate()) 日
                 <div>@(d)</div>
@@ -34,7 +42,7 @@
             //console.log(func());
 
             //var res = $("#test-template").render();
-            $("#date-template").quickRender();
+            $("#date-template").renderToParent();
         });
     </script>
 </body>
