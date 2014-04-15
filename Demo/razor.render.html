@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="../RazorJs.js"></script>
+
+    <script>
+        window.onload = function () {
+            var templateBlock = document.getElementById("template");
+
+            //1.render template -> html
+            var html = razor.render(templateBlock.innerHTML);
+            //2.append
+            document.getElementById("container").innerHTML = html;
+        };
+    </script>
+</head>
+<body>
+    只加载RazorJs
+    <div id="container">
+
+    </div>
+    <script type="text/template" id="template">
+        @{
+        var i=10;
+        }
+        @while(i>0)
+        {
+        @{
+        //code block
+        i--;
+        }
+        <div>咋还没到0呢...</div>
+        <div>现在i:@(i)</div>
+        }
+    </script>
+</body>
+</html>

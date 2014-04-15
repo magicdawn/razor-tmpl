@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../RazorJs.js"></script>
+    <script>
+        $(function () {
+            $("#btn1").click(function () {
+                $("#test-razor-for").renderNode();
+            });
+
+            $("#btn2").click(function () {
+                $("#test-razor-ViewBag").renderNode({
+                    list: [
+                        { age: 18, name: "zhangsan" },
+                        { age: 19, name: "lisi" },
+                        { age: 20, name: "wangwu" }
+                    ]
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div style="background-color:red;color:white;">
+        最简单的for
+        <button id="btn1">点我啊</button>
+        <div razor-template razor-for="var i=0;i<10;i++" id="test-razor-for">
+            <div>@(i)</div>
+        </div>
+    </div>
+
+    <div style="background-color:cyan">
+        使用ViewBag
+        <button id="btn2">点我啊</button>
+        <div razor-template razor-for="var i in ViewBag.list" id="test-razor-ViewBag">
+            @{
+            //JavaScript Code Here
+            var item = ViewBag.list[i];
+            }
+            <div>
+                age:<span>@(item.age)</span>
+                name:<span>@(item.name)</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

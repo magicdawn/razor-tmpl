@@ -1,4 +1,43 @@
-﻿(function (exports) {
+﻿/*
+    Created BY Magicdawn;
+    2014-4-15 12:51:10
+**/
+
+//format函数
+//"xxx".format(obj1,obj2,obj3);不限参数个数
+String.prototype.format = function (obj1, obj2, obj3) {
+    var res = this;
+    var objs = arguments;
+
+    //构建正则
+    var re = null;
+    if (arguments.length > 1)
+    {
+        //2个
+        //obj 0~1
+        // re=/\{[0-(n-1)]\}/
+        re = new RegExp("\\{([0-" + (arguments.length - 1) + "])\\}", 'g');
+    }
+    else if (arguments.length == 1)
+    {
+        //一个
+        re = /\{(0)\}/g;
+    }
+    else
+    {
+        return this;
+    }
+
+    res = res.replace(re, function (match, group1, index, input) {
+        //匹配到的{n} -> obj[n]
+        return objs[group1];
+    });
+    return res;
+
+    //this.replace不会改变字符串
+};
+
+(function (exports) {
 
     //一个节点的类型
     var ESegmentType = {
@@ -20,8 +59,9 @@
     }
 
     var Regexs = {
-        //\S 是 Symbol
-        Loop: /^\Sif|for|while\s*?\([\s\S]*?\)\s*?\{[\s\S]*?\}/
+        //\S 是 Symbol='@'
+        Loop: /^\Sfor|while\([\s\S]*?\)\s*?\{[\s\S]*?\}/,
+        Condition: /^\S(if\([\s\S]*?\)\s*?\{)([\s\S]*?)(\})(?:\s*?(else\s*?\{)([\s\S]*?)(\}))?/
     };
 
     function simpleMinfy(str) {
@@ -39,14 +79,14 @@
     var SegementProcesser = {
         symbol: '@',
 
-        //主方法,对外公开
+        //Segment[] result = SegmentProcesser.process(String template);
         process: function (template) {
             var model = new StringBlockModel(simpleMinfy(template));
             this.processStringBlock(model);
             return model.segments;
         },
 
-        //StringBlock
+        //StringBlock,主循环
         processStringBlock: function (model) {
             var template = model.template;
             for (var index = 0, length = template.length; index < length; index++)
@@ -70,12 +110,17 @@
                         case '('://@(var)
                             index = this.processVariable(model, index);
                             break;
-                        default://可能有@if 等
+                        default://可能有@if @for @while等
                             var remain = model.template.substring(index);
                             if (Regexs.Loop.test(remain))
                             {
-                                //是if for while
+                                //是for while
                                 index = this.processLoop(model, index);
+                            }
+                            else if (Regexs.Condition.test(remain))
+                            {
+                                //@if  (else)?
+                                index = this.processCondition(model, index);
                             }
                             break;
                     }
@@ -107,18 +152,16 @@
             }
             model.processedIndex = index - 1;
         },
-
-        //@@ index index+1
         processEscapeSymbol: function (model, index) {
+            //@@ index index+1
             model.segments.push(new Segment(this.symbol, ESegmentType.String));
             model.processedIndex = index + 1;
 
             //index指向block最后
             return model.processedIndex;
         },
-
-        //@{}
         processCodeBlock: function (model, index) {
+            //@{}
             var secondBraceIndex = this.getSecondBraceIndex(model.template, index + 1);
 
             var content = model.template.substring(index + 2, secondBraceIndex).trim();
@@ -143,13 +186,13 @@
             return model.processedIndex;
         },
         processLoop: function (model, index) {
-            //  @if() {   }
+            //  @for() {   },@for(必须挨着
             var remain = model.template.substring(index);
             var firstIndex = remain.indexOf('{') + index;
             //在model.template里找匹配的'}'
             var secondInex = this.getSecondBraceIndex(model.template, firstIndex);
 
-            var part1 = model.template.substring(index + 1, firstIndex + 1);      //if(abc == abc){
+            var part1 = model.template.substring(index + 1, firstIndex + 1);    //for(xxx){
             var part2 = model.template.substring(firstIndex + 1, secondInex);   //  <div>@(data)</div>
             var part3 = '}';                                                    //}
 
@@ -165,6 +208,46 @@
             model.processedIndex = secondInex;
             return model.processedIndex;
         },
+        processCondition: function (model, index) {
+            //@if(condition){
+            //  <div>@(data)</div>
+            //}
+            //else
+            //{}
+            var remain = model.template.substring(index);
+            var arr = Regexs.Condition.exec(remain);
+
+            var ifpart1 = arr[1];
+            var ifpart2 = arr[2];
+            var ifpart3 = arr[3];
+            //1.if(abc==abc){
+            model.segments.push(new Segment(ifpart1, ESegmentType.CodeBlock));
+            //2. <div>@(data)</div>
+            var ifInnerSegments = this.process(ifpart2);
+            model.segments = model.segments.concat(ifInnerSegments);
+            //3.}
+            model.segments.push(new Segment(ifpart3, ESegmentType.CodeBlock));
+
+            if (arr[4])
+            {
+                //存在else块
+                var elsepart1 = arr[4];
+                var elsepart2 = arr[5];
+                var elsepart3 = arr[6];
+                //1.else{
+                model.segments.push(new Segment(elsepart1, ESegmentType.CodeBlock));
+                //2. <div>@data</div>
+                var elseInnerSegments = this.process(elsepart2);
+                model.segments = model.segments.concat(elseInnerSegments);
+                //3.}
+                model.segments.push(new Segment(elsepart3, ESegmentType.CodeBlock));
+            }
+
+            //@if{}
+            model.processedIndex = index + arr[0].length - 1;
+            return model.processedIndex;
+        },
+
 
         getSecondBraceIndex: function (template, firstIndex) {
             //index 是第一个{的Index
@@ -198,7 +281,7 @@
         modelName: "ViewBag",
         enableEmptyValue: false,//是否允许空值
 
-        //主方法,对外公开
+        //var func=SegmentCompiler.compile(Segment[] segmnets)
         compile: function (segments) {
             var functionContent = [];
             functionContent.push("var result=[];");
@@ -250,11 +333,13 @@
     };
 
     var razor = {
+        //var func=razor.compile(String template);
         compile: function (template) {
             var segments = SegementProcesser.process(template);
             var func = SegmentCompiler.compile(segments);
             return func;
         },
+        //String result=razor.render(String template,Object ViewBag)
         render: function (template, ViewBag) {
             var func = this.compile(template);
             return func(ViewBag);
@@ -276,7 +361,7 @@
             this.enableEmptyValue(false);
         }
     };
-    exports.razor = razor;
+    exports.razor = razor;//绑定到外部window对象上
 
     //if jquery exists
     //---------------------------------------
@@ -288,6 +373,14 @@
         });
 
         $.fn.extend({
+            //------------------------------------------
+            //-----render 表示处理节点的innerHtml
+            //------------------------------------------
+
+            //var func = $(selector).compile();
+            compile: function () {
+                return razor.compile(this.html());
+            },
             //String html=$("#id").render(ViewBag)
             render: function (ViewBag) {
                 var html = this.html();//this是jquery对象
@@ -295,22 +388,34 @@
             },
 
             //render到节点的parent
-            //$("#template-id").quickRender(ViewBag)
+            //$("#template-id").renderToParent(ViewBag)
             renderToParent: function (ViewBag) {
                 var html = this.render(ViewBag);
                 this.parent().append(html);
             },
-
             //renderInParent,会清空parent的内容,再append,会覆盖此Script template
-            renderInParent: function (ViewBag) {
+            renderInParent: function (ViewBag, keepScriptTemplate) {
                 var result = this.render(ViewBag);
-                this.parent().html(result);
+                if (keepScriptTemplate)
+                {
+                    //保留此script template
+                    var scriptTemplate = this;
+                    this.parent().html("");
+                    this.parent().append(this);
+                    this.parent().append(result);
+                }
+                else
+                {
+                    this.parent().html(result);
+                }
             },
 
-            //上面是一个<script>标签,render的时候取innderHTML,这个取节点
-            //<div razor-template razor-for="var i=0;i<ViewBag.length;i++">
-            //---------------------------------
-            renderNode: function (ViewBag) {
+            //----------------------------------------------
+            //---Node 表示节点上有 要处理的内容
+            //---<div razor-template razor-for="var i=0;i<ViewBag.length;i++">
+            //-----------------------------------------------
+            //var func=$(选择器).compileNode();
+            compileNode: function () {
                 var segments = [];
 
                 var loop = (
@@ -355,7 +460,8 @@
                 }
 
                 //在innerrender
-                var innerSegments = SegementProcesser.process(this.html());
+                var innerTemplate = this.attr("razor-template") || this.html();
+                var innerSegments = SegementProcesser.process(innerTemplate);
                 segments = segments.concat(innerSegments);
 
                 //最后一个}
@@ -364,9 +470,79 @@
                     segments.push(new Segment('}', ESegmentType.CodeBlock));
                 }
 
-                //最后结果
-                var html = SegmentCompiler.compile(segments)(ViewBag);
-                this.html(html);
+                //拿到segments -> compile -> func
+                var func = SegmentCompiler.compile(segments);
+                return func;
+            },
+            //void $(选择器).renderNode(ViewBag);//会调用show
+            renderNode: function (ViewBag) {
+                var func = this.compileNode();
+                var result = func(ViewBag);
+
+                //保存innerTemplate
+                if (!this.attr("razor-template"))
+                {
+                    //只在第一次render的时候保存
+                    var innerTemplate = this.html().trim();
+                    this.attr("razor-template", innerTemplate);
+                }
+
+                this.html(result);
+                this.show();
+            },
+
+            //---------------------------------------
+            //---<div razor-repeat='item in items'>
+            //---------------------------------------
+            //var func = $(selector).compileRepeat(); var html=func(ViewBag);
+            compileRepeat: function () {
+                var segments = [];
+
+                var repeatAttr =
+                    this.attr("razor-repeat").trim() ||
+                    this.attr("data-razor-repeat").trim();
+                if (repeatAttr)
+                {
+                    //razor-repeat="不为空"
+                    //item in items
+                    var inIndex = repeatAttr.indexOf('in');
+                    var item = repeatAttr.substring(0, inIndex).trim();//变量item
+                    var items = repeatAttr.substring(inIndex + 2).trim();//集合items
+
+                    //1.开头的for
+                    var content = "for(var i in {0}){ var {1} = {0}[i];".format(items, item);
+                    segments.push(new Segment(content, ESegmentType.CodeBlock));
+                }
+
+                //2.中间内容
+                var innerTemplate = this.attr("razor-template") || this.html();
+                var innerSegments = SegementProcesser.process(innerTemplate);
+                segments = segments.concat(innerSegments);
+
+                if (repeatAttr)
+                {
+                    //3.最后,与1对应的 '}'
+                    segments.push(new Segment('}', ESegmentType.CodeBlock));
+                }
+
+                //compile : segments -> func
+                var func = SegmentCompiler.compile(segments);
+                return func;
+            },
+            //void $(selector).renderRepeat(ViewBag);
+            renderRepeat: function (ViewBag) {
+                var func = this.compileRepeat();
+                var result = func(ViewBag);
+
+                //保存innerTemplate
+                if (!this.attr("razor-template"))
+                {
+                    //只在第一次render的时候保存
+                    var innerTemplate = this.html().trim();
+                    this.attr("razor-template", innerTemplate);
+                }
+
+                this.html(result);
                 this.show();
             }
         });

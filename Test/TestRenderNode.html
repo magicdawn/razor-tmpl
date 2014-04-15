@@ -1,0 +1,20 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../RazorJs.js"></script>
+
+    <script>
+        $(function () {
+            $("#test").renderNode();
+        });
+    </script>
+    <title></title>
+</head>
+<body>
+    <div razor-template razor-for="var i=10;i<100;i++" id="test">
+        <div>@(i)</div>
+    </div>
+</body>
+</html>
