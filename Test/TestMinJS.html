@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../RazorJs.min.js"></script>
+    <script>
+        $(function () {
+            $("#test-div-template").renderNode();
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <div razor-template id="test-div-template">
+            @{
+                var data =10;
+            }
+            <span>@(data)</span>
+        </div>
+    </div>
+</body>
+</html>
