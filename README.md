@@ -1,6 +1,13 @@
-#RazorJs
+#致谢 [kino.razor](https://github.com/kinogam/kino.razor)
 
-可使用
+#RazorJs
+##Razor是一款模仿kino.razor的前端模板引擎
+
+关于基本函数使用,以及自定义 [Basic.md](https://code.csdn.net/magicdawn/razorjs/tree/master/Basic.md)
+关于jquery的更方便功能,见 [jQuery.md](https://code.csdn.net/magicdawn/razorjs/tree/master/jQuery.md)
+
+
+在模板中可使用
 
 	<script type="text/template">
 		@
@@ -51,23 +58,3 @@
     var html=razor.render(ViewBag);
     
     $("#container-id").append(html);
-
-5.在ASP.NET MVC中,@符号本来就是razor ViewEngine的symbol,因此可以使用
-`razor.changeSymbol('~')`,用`~`来代替`@` 
-
-6.在template里面,可以不使用ViewBag,这个,用其他变量的表示传给模板的数据
-使用
-    
-    razor.changeModelName("model")
-就可以在模板里面使用model.xxx来引用数据
-
-
------------------------------------------
-#在有jQUery的情况下
-可以使用
-    `var html=$("selector").render(ViewBag);`
-
-更简单的方法是
-`$("selector").quickRender(ViewBag);`
-这样会使用ViewBag来使这个模板变成html,并且自动append到它出现位置的父级节点
-`([$instance]).parent()`获取
