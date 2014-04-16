@@ -1,7 +1,5 @@
-﻿var result=[];var hello = "hello world ...";
-//在代码里面可以用ViewBag
-var length=ViewBag.list.length;result.push('ViewBag.list.length:');result.push(ViewBag.list.length);for(var i=0; i < length ;i++)
-{result.push('<div>name :');result.push(ViewBag.list[i].name);
-    
-    result.push("</div>
-        <div>age :");result.push(ViewBag.list[i].age);result.push('</div>');}
+﻿func
+function func(ViewBag) {
+    var result = [];
+    for (var i in ViewBag.persons) { var p = ViewBag.persons[i]; var isAdult = p.age >= 18; if (isAdult) { console.log(p); result.push('<div>'); result.push(p.name); result.push('是成人了啊~~~</div> <div>不和谐内容</div>'); } result.push('else {'); while (p.age > 0) { p.age--; result.push('<div>'); result.push(p.age); result.push('</div>'); } result.push('<div>少儿不宜啊...</div> }'); } return result.join('');
+}

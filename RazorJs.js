@@ -1,10 +1,11 @@
-﻿/*
+﻿/// <reference path="../RequireJS/require.js" />
+
+/*
     Created BY Magicdawn;
     2014-4-15 12:51:10
 **/
 
-//format函数
-//"xxx".format(obj1,obj2,obj3);不限参数个数
+//usage : "xxx".format(obj1,obj2,obj3);不限参数个数
 String.prototype.format = function (obj1, obj2, obj3) {
     var res = this;
     var objs = arguments;
@@ -38,6 +39,7 @@ String.prototype.format = function (obj1, obj2, obj3) {
 };
 
 (function (exports) {
+    "use strict";
 
     //一个节点的类型
     var ESegmentType = {
@@ -60,8 +62,17 @@ String.prototype.format = function (obj1, obj2, obj3) {
 
     var Regexs = {
         //\S 是 Symbol='@'
-        Loop: /^\Sfor|while\([\s\S]*?\)\s*?\{[\s\S]*?\}/,
-        Condition: /^\S(if\([\s\S]*?\)\s*?\{)([\s\S]*?)(\})(?:\s*?(else\s*?\{)([\s\S]*?)(\}))?/
+        //gloabl 测试remain loop."@if(){} else {} for(){}"非global为true
+        Loop: /^\S(?:for|while)\([\s\S]*?\)\s*?\{[\s\S]*?\}/g,
+        //Condition: /^\S(if\([\s\S]*?\)\s*?\{)([\s\S]*?(?:\{[\s\S]*?\})*)(\})(?:\s*?(else\s*?\{)([\s\S]*?)(\}))?/g,
+        IfElse: /^\Sif\([\s\S]*?\)[\s\S]*?(else)?/g,
+        IfElseString: "^\\Sif\\([\\s\\S]*?\\)[\\s\\S]*?(else)?",
+        IfElseFlag: "g",
+
+        // '<'
+        Lt: /&lt;/gi,
+        Gt: /&gt;/gi,
+        And: /&amp;/gi
     };
 
     function simpleMinfy(str) {
@@ -117,7 +128,7 @@ String.prototype.format = function (obj1, obj2, obj3) {
                                 //是for while
                                 index = this.processLoop(model, index);
                             }
-                            else if (Regexs.Condition.test(remain))
+                            else if ((new RegExp(Regexs.IfElseString,Regexs.IfElseFlag)).test(remain))
                             {
                                 //@if  (else)?
                                 index = this.processCondition(model, index);
@@ -143,7 +154,7 @@ String.prototype.format = function (obj1, obj2, obj3) {
             应该更新model的processedIndex
             并返回新的index应该位置
         */
-        //普通String,如 <div>@(var变量) <div>
+        //普通String,如 <div>@(var变量)中的<div>
         processString: function (model, index) {
             var content = model.template.substring(model.processedIndex + 1, index).trim();
             if (content)
@@ -167,6 +178,7 @@ String.prototype.format = function (obj1, obj2, obj3) {
             var content = model.template.substring(index + 2, secondBraceIndex).trim();
             if (content)
             {
+                content = this.handleCodeEscape(content);
                 model.segments.push(new Segment(content, ESegmentType.CodeBlock));
             }
 
@@ -180,6 +192,7 @@ String.prototype.format = function (obj1, obj2, obj3) {
             var content = model.template.substring(index + 2, secondBraceIndex).trim();
             if (content)
             {
+                content = this.handleCodeEscape(content);
                 model.segments.push(new Segment(content, ESegmentType.Variable));
             }
             model.processedIndex = secondBraceIndex;
@@ -196,12 +209,16 @@ String.prototype.format = function (obj1, obj2, obj3) {
             var part2 = model.template.substring(firstIndex + 1, secondInex);   //  <div>@(data)</div>
             var part3 = '}';                                                    //}
 
+            //1.part1
+            part1 = this.handleCodeEscape(part1);
             model.segments.push(new Segment(part1, ESegmentType.CodeBlock));
 
-            //part2为StringBlock,意味着if可以 嵌套
+            //2.part2
+            //part2为StringBlock,意味着if while for 可以 嵌套
             var subSegments = this.process(part2);
             model.segments = model.segments.concat(subSegments);
 
+            //3.part3
             model.segments.push(new Segment(part3, ESegmentType.CodeBlock));
 
             //更新processedIndex和返回index
@@ -215,25 +232,38 @@ String.prototype.format = function (obj1, obj2, obj3) {
             //else
             //{}
             var remain = model.template.substring(index);
-            var arr = Regexs.Condition.exec(remain);
+            var firstIfBrace = remain.indexOf('{') + index;//'{'
+            var secondIfBrace = this.getSecondBraceIndex(model.template, firstIfBrace);//'}'
 
-            var ifpart1 = arr[1];
-            var ifpart2 = arr[2];
-            var ifpart3 = arr[3];
+            var ifpart1 = model.template.substring(index+1,firstIfBrace+1);
+            var ifpart2 = model.template.substring(firstIfBrace + 1, secondIfBrace);
+            var ifpart3 = '}';
+
             //1.if(abc==abc){
+            ifpart1 = this.handleCodeEscape(ifpart1);
             model.segments.push(new Segment(ifpart1, ESegmentType.CodeBlock));
             //2. <div>@(data)</div>
             var ifInnerSegments = this.process(ifpart2);
             model.segments = model.segments.concat(ifInnerSegments);
             //3.}
             model.segments.push(new Segment(ifpart3, ESegmentType.CodeBlock));
+            model.processedIndex = secondIfBrace;
 
-            if (arr[4])
+            //判断有无else块
+            remain = model.template.substring(secondIfBrace+1);
+            if (/^\s*else/g.test(remain))
             {
                 //存在else块
-                var elsepart1 = arr[4];
-                var elsepart2 = arr[5];
-                var elsepart3 = arr[6];
+                var firstElseBrace = remain.indexOf('{') + secondIfBrace +1;//'{'
+                var secondeElseBrace = this.getSecondBraceIndex(model.template,firstElseBrace);//'}'
+
+                //part 1 2 3
+                //else {
+                //  xxx
+                //}
+                var elsepart1 = "else{";     
+                var elsepart2 = model.template.substring(firstElseBrace+1,secondeElseBrace);     
+                var elsepart3 = "}"    
                 //1.else{
                 model.segments.push(new Segment(elsepart1, ESegmentType.CodeBlock));
                 //2. <div>@data</div>
@@ -241,13 +271,13 @@ String.prototype.format = function (obj1, obj2, obj3) {
                 model.segments = model.segments.concat(elseInnerSegments);
                 //3.}
                 model.segments.push(new Segment(elsepart3, ESegmentType.CodeBlock));
+
+                model.processedIndex = secondeElseBrace;
             }
 
             //@if{}
-            model.processedIndex = index + arr[0].length - 1;
             return model.processedIndex;
         },
-
 
         getSecondBraceIndex: function (template, firstIndex) {
             //index 是第一个{的Index
@@ -274,12 +304,23 @@ String.prototype.format = function (obj1, obj2, obj3) {
                 }
             }
             return index;
+        },
+
+        //替换content
+        //'&lt;'    ---->    <
+        //'&gt;'    ---->    >
+        //'&amp;'   ---->    &
+        handleCodeEscape: function (content) {
+            return content
+                .replace(Regexs.Lt, '<')
+                .replace(Regexs.Gt, '>')
+                .replace(Regexs.And,'&');
         }
     };
 
     var SegmentCompiler = {
         modelName: "ViewBag",
-        enableEmptyValue: false,//是否允许空值
+        enableEmptyValue: false,//是否允许空值       
 
         //var func=SegmentCompiler.compile(Segment[] segmnets)
         compile: function (segments) {
@@ -547,4 +588,4 @@ String.prototype.format = function (obj1, obj2, obj3) {
             }
         });
     }
-})(window);
+})(this);
