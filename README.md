@@ -56,8 +56,7 @@ razor的牛B,不是我说出来的,那个C#版的razor-engine也是开源的,可
 模板咋写,看看这个
 
 	<script type="text/template">
-		@
-		{
+		@{
 			//代码块
 			var hello = "hello world";			
 			var varBool=true;
