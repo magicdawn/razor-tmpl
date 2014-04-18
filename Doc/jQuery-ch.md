@@ -32,4 +32,5 @@ angularjs 写法
     </div>
 
 因为使用了item in items这样特殊的语法，js只能识别for(var index in items)这样的语法，故这种需分开处理
-使用`$(selector).renderRepeat(ViewBag)`来使它显示出来
+1. 使用`$(selector).renderRepeat(ViewBag)`来使它显示出来
+2. 在循环体中可以使用`index`变量,例如`@(index)`,所以不要在循环内部声明index变量,会导致这样的循环不工作

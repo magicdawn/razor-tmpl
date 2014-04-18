@@ -14,12 +14,12 @@
                 { name: 'wang wu', age: 20 }
             ];
             $("#test-btn-1").click(function () {
-                $("#test1").quickRender(ViewBag);
+                $("#test1").renderToParent(ViewBag);
             });
 
             $("#test-btn-2").click(function () {
                 razor.changeModelName("model");
-                $("#test2").quickRender(ViewBag);
+                $("#test2").renderToParent(ViewBag);
             });
         });
     </script>

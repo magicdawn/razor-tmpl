@@ -345,7 +345,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //@(data)
                             //if(typeof(data) != 'undefined' && data) result.push(data);
                             //else result.push("data");
-                            var inner = "if(typeof({0}) != 'undefined' && {0}) result+={0}; else result.push('{0}')".format(data);
+                            var inner = "if(typeof({0}) != 'undefined' && {0}) result+={0}; else result+='{0}';".format(data);
                             functionContent.push(inner);
                         }
                         break;

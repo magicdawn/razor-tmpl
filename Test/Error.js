@@ -1,29 +1,12 @@
-﻿///错误重现...
-///
+﻿var result='';
 
-//string push(\"{0}\")
-var result=[];
+var hello = "hello world ..."; 
 
-var data = "<div>div内部</div>";
+var length=ViewBag.list.length;
 
-while(1<0) {}
+result+='ViewBag.list.length:';
 
-result.push("<div style="background-color:cyan;">");
-
-result.push((data).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));result.push("</div>");
-
-return result.join('');
-
-
-//"result.push('{0}')"
-var result=[];
-
-var data = "<div>div内部</div>";
-
-while(1<0) {}
-
-result.push("<div style=\"background-color:cyan;\" class=\'\'>");
-
-result.push((data).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));result.push('</div>');
-
-return result.join('');
+if(typeof(ViewBag.list.length) != 'undefined' && ViewBag.list.length) 
+    result+=ViewBag.list.length; 
+else
+    result+='ViewBag.list.length');for(var i=0; i < length ;i++) {result+='<div>name :';if(typeof(ViewBag.list[i].name) != 'undefined' && ViewBag.list[i].name) result+=ViewBag.list[i].name; else result+='ViewBag.list[i].name');result+='</div> <div>age :';if(typeof(ViewBag.list[i].age) != 'undefined' && ViewBag.list[i].age) result+=ViewBag.list[i].age; else result+='ViewBag.list[i].age');result+='</div>';}return result;
