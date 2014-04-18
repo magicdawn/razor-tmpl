@@ -24,7 +24,6 @@
                 //是成人 ?
                 var isAdult = p.age >= 18;
             }
-
             @if(isAdult)
             {
                 @{
@@ -33,7 +32,7 @@
                     console.log(p);
                 }
                 <div>@(p.name)</div>
-                <div>和谐</div>
+                <div>和谐内容</div>
             }
             else
             {
@@ -44,7 +43,7 @@
                     }
                     <div>@(p.age)</div>
                 }
-                <div>abcd</div>
+                <div>丫的,没满18吧</div>
             }
         </div>
     </div>

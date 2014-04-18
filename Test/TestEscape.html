@@ -2,11 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../RazorJs.js"></script>
     <title></title>
 </head>
 <body>
-    <!-- 
-        test1         
+    <!--
+        test1
         innerHtml.trim() length=4; &lt;
 
         test2
@@ -23,7 +25,35 @@
         <div><></div>
     </div>
     <div id="test3">
-        <div>&lt;&gt;</div>
+        <div>&lt;div&gt;abc&lt;/div&gt;</div>
     </div>
+
+    <div razor-template id="test4">
+        @{
+            var data = "<div>div内部</div>";
+        }
+        @while(1<0) {}
+        <div style='background-color:cyan;'>@(- data)</div>
+    </div>
+    <script>
+        $(function () {
+            $(test4).renderNode();
+
+            var vars = {
+                header: "Header",
+                header2: "Header2",
+                header3: "Header3",
+                header4: "Header4",
+                header5: "Header5",
+                header6: "Header6",
+                list: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+            };
+
+            var template = "<div><h1 class='header'>@(ViewBag.header)</h1><h2 class='header2'>@(ViewBag.header2)</h2><h3 class='header3'>@(ViewBag.header3)</h3><h4 class='header4'>@(ViewBag.header4)</h4><h5 class='header5'>@(ViewBag.header5)</h5><h6 class='header6'>@(ViewBag.header6)</h6><ul class='list'>@for (var i = 0, l = ViewBag.list.length; i < l; i++) { <li class='item'>@(ViewBag.list[i])</li>}</ul></div>";
+
+            var res = razor.render(template, vars);
+            console.log(res);
+        });
+    </script>
 </body>
 </html>
