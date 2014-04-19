@@ -1,9 +1,6 @@
 ﻿/*
-    Created BY Magicdawn;
-    2014-4-15 12:51:10
-
-    v0.2
-    Segments容易修改维护
+ Created BY Magicdawn;
+ 2014-4-15 12:51:10
  */
 
 //usage : var replaced = "xxx".replaceAll("old","new");

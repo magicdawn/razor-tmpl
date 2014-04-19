@@ -42,13 +42,14 @@ var getTime = function (f) {
 //-----------------------------------------
 //---razor
 //-----------------------------------------
-console.log("using arr.push() to construct a func ...");
 //非escape
 var func = razor.compile(template);
 //escape
 var func_escape = razor.compile(template_escape);
 
+console.log("---------------------------------");
 console.log("non escape ...");
+console.log(func(vars));
 console.log("spend time :");
 getTime(function () {
     for (var i = 0; i < 100000; i++)
@@ -56,8 +57,12 @@ getTime(function () {
         func(vars);
     }
 });
+console.log("---------------------------------");
 
+
+console.log("---------------------------------");
 console.log("escape ...");
+console.log(func_escape(vars_escape));
 console.log("spend time :");
 getTime(function () {
     for (var i = 0; i < 100000; i++)
@@ -65,6 +70,8 @@ getTime(function () {
         func_escape(vars_escape);
     }
 });
+console.log("---------------------------------");
+
 
 /*
     Test Just Like Other Template Engines :

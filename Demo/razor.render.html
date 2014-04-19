@@ -23,16 +23,17 @@
     </div>
     <script type="text/template" id="template">
         @{
-        var i=10;
+            var b = 3 > 4;
+            var i=10;
         }
         @while(i>0)
         {
-        @{
-        //code block
-        i--;
-        }
-        <div>咋还没到0呢...</div>
-        <div>现在i:@(i)</div>
+            @{
+                //code block
+                i--;
+            }
+            <div>咋还没到0呢...</div>
+            <div>现在i:@(i)</div> 
         }
     </script>
 </body>
