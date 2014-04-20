@@ -1,4 +1,4 @@
-﻿var razor = require("./RazorJs.js");
+﻿var razor = require("./razor-tmpl.js");
 
 var template_escape = "<div><h1 class='header'>@(- ViewBag.header)</h1><h2 class='header2'>@(- ViewBag.header2)</h2><h3 class='header3'>@(- ViewBag.header3)</h3><h4 class='header4'>@(- ViewBag.header4)</h4><h5 class='header5'>@(- ViewBag.header5)</h5><h6 class='header6'>@(- ViewBag.header6)</h6><ul class='list'>@for (var i = 0, l = ViewBag.list.length; i < l; i++) { <li class='item'>@(- ViewBag.list[i])</li>}</ul></div>";
 

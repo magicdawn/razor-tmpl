@@ -16,7 +16,7 @@ the angularjs template like this
         <div>item.xxx</div>
     </div>
 
-in RazorJs,can be write like 
+in razor-tmpl,can be write like 
 ##1.razor-for razor-while razor-if
 e.g.
    

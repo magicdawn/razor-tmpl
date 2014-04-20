@@ -1,8 +1,18 @@
-﻿var result='';
-var data = "<div>div内部</div>";
-while(1<0) {
-}
-result+='<div style=\background-color:cyan;\>';
-result+=data.replace(/&(?!#?w+;)/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,"&#34;").replace(/\//g,'&#47;');
-result+='</div>';
+﻿
+
+
+var result='';
+var data =10;
+result+='<html>
+\n <head>
+\n <title>';
+result+=ViewBag.title;
+result+='</title>
+\n </head>
+\n <body>
+\n <div>';
+result+=ViewBag.hello;
+result+='</div>
+\n </body>
+\n</html>';
 return result;

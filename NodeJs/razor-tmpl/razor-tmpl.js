@@ -33,12 +33,14 @@ String.prototype.format = function (obj0, obj1, obj2) {
     };
 
     //Segment 构造函数
+
     function Segment(content, eSegmentType) {
         this.Content = content;
         this.SegmentType = eSegmentType;
     }
 
     //StringBlockModel构造函数
+
     function StringBlockModel(template) {
         this.template = template;
         this.processedIndex = -1;
@@ -63,14 +65,16 @@ String.prototype.format = function (obj0, obj1, obj2) {
         {
             //对codeBlock使用isJsCode = true
             str = str
-                .replace(/\/\/.*$/gm, '')//单行注释
-                .replace(/\/\*[\s\S]*\*\//g, '')//多行注释,.号任意字符不包括\n,用[\s\S]表示任意字符
+                .replace(/\/\/.*$/gm, '') //单行注释
+                .replace(/\/\*[\s\S]*\*\//g, ''); //多行注释,.号任意字符不包括\n,用[\s\S]表示任意字符
+            // <!-- xxx -->
         }
         //普通的去除空行
         return str
-            .replace(/@\*[\s\S]*?\*@]/g, '')//去除模板注释
+            .replace(/@\*[\s\S]*?\*@]/g, '') //去除模板注释
             .replace(/\n+/g, '\n') //多个空行转为一个
             .replace(/ +/g, ' ') //对个空格转为一个
+            .replace(/<!--[\s\S]*?-->/g, '')
             .trim();
     };
 
@@ -90,7 +94,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             for (var index = 0, length = template.length; index < length; index++)
             {
                 var current = template[index];
-                if (current == this.symbol)//当前为'@'
+                if (current == this.symbol) //当前为'@'
                 {
                     //1. @之前的string
                     this.processString(model, index);
@@ -99,19 +103,19 @@ String.prototype.format = function (obj0, obj1, obj2) {
                     var next = template[index + 1];
                     switch (next)
                     {
-                        case this.symbol:// //@@
+                        case this.symbol: // //@@
                             index = this.processEscapeSymbol(model, index);
                             break;
-                        case '{'://@{code block}
+                        case '{': //@{code block}
                             index = this.processCodeBlock(model, index);
                             break;
-                        case '('://@(var)
+                        case '(': //@(var)
                             index = this.processVariable(model, index);
                             break;
                         case '*': //@* comment *@
-                            index = this.processComment(model.index);
+                            index = this.processComment(model, index);
                             break;
-                        default://可能有@if @for @while等
+                        default: //可能有@if @for @while等
                             var remain = model.template.substring(index);
                             if (new RegExp(Regexs.LoopString, Regexs.LoopFlag).test(remain))
                             {
@@ -183,7 +187,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
             if (content)
             {
-                content = this.getOriginalFromEscapedCode(content);//像@( p.age &gt;= 10)
+                content = this.getOriginalFromEscapedCode(content); //像@( p.age &gt;= 10)
                 if (/^- /g.test(content))
                 {
                     //以-空格开头 @(- data) 这种escape
@@ -224,9 +228,9 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //在model.template里找匹配的'}'
             var secondInex = this.getSecondIndex(model.template, firstIndex);
 
-            var part1 = model.template.substring(index + 1, firstIndex + 1);    //for(xxx){
-            var part2 = model.template.substring(firstIndex + 1, secondInex);   //  <div>@(data)</div>
-            var part3 = '}';                                                    //}
+            var part1 = model.template.substring(index + 1, firstIndex + 1); //for(xxx){
+            var part2 = model.template.substring(firstIndex + 1, secondInex); //  <div>@(data)</div>
+            var part3 = '}'; //}
 
             //1.part1
             part1 = this.getOriginalFromEscapedCode(part1);
@@ -251,8 +255,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //else
             //{}
             var remain = model.template.substring(index);
-            var firstIfBrace = remain.indexOf('{') + index;//'{'
-            var secondIfBrace = this.getSecondIndex(model.template, firstIfBrace);//'}'
+            var firstIfBrace = remain.indexOf('{') + index; //'{'
+            var secondIfBrace = this.getSecondIndex(model.template, firstIfBrace); //'}'
 
             var ifpart1 = model.template.substring(index + 1, firstIfBrace + 1);
             var ifpart2 = model.template.substring(firstIfBrace + 1, secondIfBrace);
@@ -273,8 +277,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
             if (/^\s*else/g.test(remain))
             {
                 //存在else块
-                var firstElseBrace = remain.indexOf('{') + secondIfBrace + 1;//'{'
-                var secondeElseBrace = this.getSecondIndex(model.template, firstElseBrace);//'}'
+                var firstElseBrace = remain.indexOf('{') + secondIfBrace + 1; //'{'
+                var secondeElseBrace = this.getSecondIndex(model.template, firstElseBrace); //'}'
 
                 //part 1 2 3
                 //else {
@@ -311,28 +315,27 @@ String.prototype.format = function (obj0, obj1, obj2) {
                 '{': '}',
                 '(': ')'
             };
-            pair[this.symbol] = this.symbol;//pair['@']='@';
+            pair[this.symbol] = this.symbol; //pair['@']='@';
 
-            var first = template.substr(firstIndex, 1);//'{' or '('
+            var first = template.substr(firstIndex, 1); //'{' or '('
             var second = pair[first];
-            var count = 1;//firstIndex处是first
-
-            var index = firstIndex + 1,
-                length = template.length;
-            for (; index < length; index++)
+            var count = 1; //firstIndex处是first            
+                
+            for (var index = firstIndex + 1,length = template.length; index < length; index++)
             {
                 var cur = template.substr(index, 1);
-                if (cur == first)
+                if (cur == second)
                 {
-                    count++;
-                }
-                else if (cur == second)
-                {
+                    //@  --> @ break;
                     count--;
                     if (count == 0)
                     {
                         break;
                     }
+                }
+                else if (cur == first)
+                {
+                    count++;
                 }
             }
             return index;
@@ -352,7 +355,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
     var SegmentCompiler = {
         modelName: "ViewBag",
-        enableEmptyValue: false,//是否允许空值
+        enableEmptyValue: false, //是否允许空值
 
         //将 ' => \'
         //将 " => \"
@@ -363,7 +366,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             return str
                 .replace(/'/g, "\\'")
                 .replace(/"/g, '\\"')
-                .replace(/\n/g, "\\n");
+                .replace(/(\r?\n)+/g, "\\n");
         },
 
         //var func=SegmentCompiler.compile(Segment[] segmnets)
@@ -460,7 +463,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
     else
     {
         //Browser
-        global.razor = razor;//绑定到外部window对象上
+        global.razor = razor; //绑定到外部window对象上
     }
 
     //if jquery exists
@@ -483,7 +486,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             },
             //String html=$("#id").render(ViewBag)
             render: function (ViewBag) {
-                var html = this.html();//this是jquery对象
+                var html = this.html(); //this是jquery对象
                 return razor.render(html, ViewBag);
             },
 
@@ -599,14 +602,14 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
                 var repeatAttr =
                     this.attr("razor-repeat").trim() ||
-                        this.attr("data-razor-repeat").trim();
+                    this.attr("data-razor-repeat").trim();
                 if (repeatAttr)
                 {
                     //razor-repeat="不为空"
                     //item in items
                     var inIndex = repeatAttr.indexOf('in');
-                    var item = repeatAttr.substring(0, inIndex).trim();//变量item
-                    var items = repeatAttr.substring(inIndex + 2).trim();//集合items
+                    var item = repeatAttr.substring(0, inIndex).trim(); //变量item
+                    var items = repeatAttr.substring(inIndex + 2).trim(); //集合items
 
                     //1.开头的for
                     var content = "for(var index in {0}){ var {1} = {0}[index];".format(items, item);

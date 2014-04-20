@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../razor-tmpl.js"></script>
+    <script>
+        $(function () {
+            var res = razor.render(template.innerHTML);
+            console.log(res);
+        });
+    </script>
+    <title></title>
+</head>
+<body>
+    去除html注释
+    <div razor-template id="template">
+        @{
+        var data =10;
+        }
+        <!-- 
+            abcd,这是注释
+            @(abcd)不关你事
+        -->
+        @(data);
+    </div>
+</body>
+</html>

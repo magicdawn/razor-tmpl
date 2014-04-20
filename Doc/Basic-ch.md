@@ -1,4 +1,4 @@
-##一 RazorJs基本功能
+##一 razor-tmpl基本功能
 
 ##1.`razor.render(template,ViewBag);`
 render函数,将template模板,渲染成html字符串

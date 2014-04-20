@@ -1,4 +1,4 @@
-##一 RazorJs Basic Functions
+##一 razor-tmpl Basic Functions
 
 ##1.`razor.render(template,ViewBag);`
 render function,will change the template to the result

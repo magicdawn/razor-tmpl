@@ -2,19 +2,20 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
     <script src="../jquery-1.7.1.min.js"></script>
     <script src="../razor-tmpl.js"></script>
-
     <script>
         $(function () {
-            $("#test").renderNode();
+            console.log(razor.render(template.innerHTML));
         });
     </script>
-    <title></title>
 </head>
 <body>
-    <div razor-template razor-for="var i=10;i<100;i++" id="test">
-        <div>@(i)</div>
+    <div razor-template id="template">
+        @* razor comment *@
+        @{ var data =10; }
+        @(data)
     </div>
 </body>
 </html>

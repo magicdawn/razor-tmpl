@@ -1,5 +1,5 @@
 /**
- * RazorJS BY Magicdawn
+ * razor-tmpl BY Magicdawn
  * on 14-4-12.
  */
 
