@@ -86,28 +86,36 @@ StringBlock即文本块,整个template就是一个文本块
         //可以声明变量,计算什么的...
     }
 
-2.变量输出
+##5.@each(item in items)
+新增一种模板写法,跟`<div razor-repeat="item in items">`对应
+模板写法
 
-    @(variable)
-
-在代码中可以使用ViewBag,这个ViewBag在render的时候传进来
-
-3.控制流
+    <div razor-template id="template">
+        @{
+            var list = [
+                { name : "zhangsan" , age : 18 },
+                { name : "lisi" , age : 19 },
+                { name : "wangwu" ,age : 20}
+            ];
+        }
+        @each(p in list)
+        {
+            <div>--------------------------</div>
+            <div>index : @($index)</div>
+            <div>name : @(p.name)</div>
+            <div>age : @(p.age)</div>
+            <div>--------------------------</div>
+        }
+    </div>
+js代码
     
-    @if(abc == xxx)
-    {
-        
-    }
-    @for(var i=0;i<length;i++)
-    {
-        <div>@(i)</div>
-    }
-在控制流的{}里面,默认是string模式,要引用变量需要用`@(变量)`
-
-
-4.写好模板后,就可以拿ViewBag来render了
+    <script>
+        $(function () {
+            $(template).renderNode();
+            //这里加上 razor-template会是dom 在ready的时候,隐藏该元素
+            //renderNode() 会是它 显示出来,并且把innerHTML设置为render的结果
+        });
+    </script>
     
-    var template=$("#template-id").html();
-    var html=razor.render(ViewBag);
-    
-    $("#container-id").append(html);
+</body>
+</html>

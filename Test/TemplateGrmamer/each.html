@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <script src="../../jquery-1.7.1.min.js"></script>
+    <script src="../../razor-tmpl.js"></script>
+
+    <script>
+        $(function () {
+            $(template).renderNode();
+        });
+    </script>
+</head>
+<body>
+    <div razor-template id="template">
+        @{
+            var list = [
+                { name : "zhangsan" , age : 18 },
+                { name : "lisi" , age : 19 },
+                { name : "wangwu" ,age : 20}
+            ];
+        }
+        @each(p in list)
+        {
+            <div>--------------------------</div>
+            <div>index : @($index)</div>
+            <div>name : @(p.name)</div>
+            <div>age : @(p.age)</div>
+            <div>--------------------------</div>
+        }
+    </div>
+</body>
+</html>

@@ -1,9 +1,9 @@
 ﻿/*
-    Created BY Magicdawn;
-    2014-4-15 12:51:10
+ Created BY Magicdawn;
+ 2014-4-15 12:51:10
 
-    v0.2
-    Segments容易修改维护
+ v0.2
+ Segments容易修改维护
  */
 
 //usage : var replaced = "xxx".replaceAll("old","new");
@@ -25,40 +25,10 @@ String.prototype.format = function (obj0, obj1, obj2) {
 (function (global) {
     "use strict";
 
-    //一个节点的类型
-    var ESegmentType = {
-        CodeBlock: 0,
-        Variable: 1,
-        String: 2
-    };
-
-    //Segment 构造函数
-
-    function Segment(content, eSegmentType) {
-        this.Content = content;
-        this.SegmentType = eSegmentType;
-    }
-
-    //StringBlockModel构造函数
-
-    function StringBlockModel(template) {
-        this.template = template;
-        this.processedIndex = -1;
-        this.segments = [];
-    }
-
-    var Regexs = {
-        //\S 是 Symbol='@'
-        //gloabl 测试remain loop."@if(){} else {} for(){}"非global为true
-        Loop: /^\S(for|while)\s*?\([\s\S]*?\)\s*?\{[\s\S]*?\}/g,
-        LoopString: "^\\S(for|while)\\s*?\\([\\s\\S]*?\\)\\s*?\\{[\\s\\S]*?\\}",
-        LoopFlag: 'g',
-
-        IfElse: /^\Sif\([\s\S]*?\)[\s\S]*?(else)?/g,
-        IfElseString: "^\\Sif\\([\\s\\S]*?\\)[\\s\\S]*?(else)?",
-        IfElseFlag: "g"
-    };
-
+    //-----------------------------------------
+    //---工具函数
+    //-----------------------------------------
+    //简化模板
     function simpleMinfy(str, isJsCode) {
         //对模板简单的简化
         if (isJsCode)
@@ -76,6 +46,44 @@ String.prototype.format = function (obj0, obj1, obj2) {
             .replace(/ +/g, ' ') //对个空格转为一个
             .replace(/<!--[\s\S]*?-->/g, '')
             .trim();
+    };
+    //复制出一个regex
+    function cloneRegex(regex) {
+        var flag = regex.global ? 'g' : '';
+        flag += regex.multiline ? 'm' : '';
+        flag += regex.ignoreCase ? 'i' : '';
+
+        return new RegExp(regex.source, flag);
+    };
+
+    //一个节点的类型
+    var ESegmentType = {
+        CodeBlock: 0,
+        Variable: 1,
+        String: 2
+    };
+
+    //Segment 构造函数
+    function Segment(content, eSegmentType) {
+        this.Content = content;
+        this.SegmentType = eSegmentType;
+    }
+
+    //StringBlockModel构造函数
+    function StringBlockModel(template) {
+        this.template = template;
+        this.processedIndex = -1;
+        this.segments = [];
+    }
+
+    var Regexs = {
+        //\S 是 Symbol='@'
+        ForWhile: /^\S(for|while)\s*?\([\s\S]*?\)\s*?\{[\s\S]*?\}/g,
+
+        IfElse: /^\Sif\([\s\S]*?\)[\s\S]*?(else)?/g,
+
+        //@each(item in items){}
+        Each: /^\Seach\s*?\([\s\S]+?\)\s*?\{[\s\S]*?\}/g
     };
 
     var SegementProcesser = {
@@ -117,15 +125,20 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             break;
                         default: //可能有@if @for @while等
                             var remain = model.template.substring(index);
-                            if (new RegExp(Regexs.LoopString, Regexs.LoopFlag).test(remain))
+                            if (cloneRegex(Regexs.ForWhile).test(remain))
                             {
                                 //是for while
-                                index = this.processLoop(model, index);
+                                index = this.processForWhile(model, index);
                             }
-                            else if ((new RegExp(Regexs.IfElseString, Regexs.IfElseFlag)).test(remain))
+                            else if (cloneRegex(Regexs.Each).test(remain))
+                            {
+                                //@each
+                                index = this.processEach(model, index);
+                            }
+                            else if (cloneRegex(Regexs.IfElse).test(remain))
                             {
                                 //@if  (else)?
-                                index = this.processCondition(model, index);
+                                index = this.processIfElse(model, index);
                             }
                             break;
                     }
@@ -221,7 +234,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             model.processedIndex = secondBraceIndex;
             return model.processedIndex;
         },
-        processLoop: function (model, index) {
+        processForWhile: function (model, index) {
             //  @for() {   }
             var remain = model.template.substring(index);
             var firstIndex = remain.indexOf('{') + index;
@@ -248,7 +261,41 @@ String.prototype.format = function (obj0, obj1, obj2) {
             model.processedIndex = secondInex;
             return model.processedIndex;
         },
-        processCondition: function (model, index) {
+        processEach: function (model, index) {
+            //处理@each(item in items) { <div>@(item)</div> }
+            var remain = model.template.substring(index);
+            //'(' ')'
+            var firstSmallIndex = remain.indexOf('(') + index;
+            var secondSmallIndex = this.getSecondIndex(
+                model.template, firstSmallIndex);
+            //'{' '}'
+            var firstBigIndex = remain.indexOf('{') + index;
+            var secondBigIndex = this.getSecondIndex(model.template, firstBigIndex);
+
+            //1.for(var i in items){ item = items[i];
+            //item in items
+            var loop = model.template.substring(firstSmallIndex+1, secondSmallIndex).trim();
+            var inIndex = loop.indexOf('in');
+            var item = loop.substring(0, inIndex).trim()
+            var items = loop.substring(inIndex + 2).trim();
+            var loopCode = "for(var $index in {1}) { var {0} = {1}[$index];".format(item, items);
+            model.segments.push(new Segment(loopCode, ESegmentType.CodeBlock));
+
+            //2.循环体
+            //{ <div>@(data)</div> }
+            var loopContent = model.template.substring(
+                firstBigIndex+1, secondBigIndex).trim();
+            var innerSegments = this.process(loopContent);
+            model.segments = model.segments.concat(innerSegments);
+
+            //3.}
+            model.segments.push(new Segment('}', ESegmentType.CodeBlock));
+
+            //更新processedIndex 返回index 该有的位置
+            model.processedIndex = secondBigIndex;
+            return secondBigIndex;
+        },
+        processIfElse: function (model, index) {
             //@if(condition){
             //  <div>@(data)</div>
             //}
@@ -319,7 +366,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
             var first = template.substr(firstIndex, 1); //'{' or '('
             var second = pair[first];
-            var count = 1; //firstIndex处是first            
+            var count = 1; //firstIndex处是first
 
             for (var index = firstIndex + 1, length = template.length; index < length; index++)
             {
@@ -450,7 +497,10 @@ String.prototype.format = function (obj0, obj1, obj2) {
             this.changeSymbol('@');
             this.changeModelName('ViewBag');
             this.enableEmptyValue(false);
-        }
+        },
+
+        version: "0.3.1",
+        updateDate : "2014-4-22"
     };
 
     //导出
@@ -479,7 +529,6 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //------------------------------------------
             //-----render 表示处理节点的innerHtml
             //------------------------------------------
-
             //var func = $(selector).compile();
             compile: function () {
                 return razor.compile(this.html());
@@ -489,7 +538,6 @@ String.prototype.format = function (obj0, obj1, obj2) {
                 var html = this.html(); //this是jquery对象
                 return razor.render(html, ViewBag);
             },
-
             //render到节点的parent
             //$("#template-id").renderToParent(ViewBag)
             renderToParent: function (ViewBag) {
@@ -602,7 +650,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
                 var repeatAttr =
                     this.attr("razor-repeat").trim() ||
-                    this.attr("data-razor-repeat").trim();
+                        this.attr("data-razor-repeat").trim();
                 if (repeatAttr)
                 {
                     //razor-repeat="不为空"
@@ -612,7 +660,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                     var items = repeatAttr.substring(inIndex + 2).trim(); //集合items
 
                     //1.开头的for
-                    var content = "for(var index in {0}){ var {1} = {0}[index];".format(items, item);
+                    var content = "for(var $index in {0}){ var {1} = {0}[$index];".format(items, item);
                     segments.push(new Segment(content, ESegmentType.CodeBlock));
                 }
 
