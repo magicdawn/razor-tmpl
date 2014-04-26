@@ -61,6 +61,17 @@ StringBlock即文本块,整个template就是一个文本块
         //code block
         //可以声明变量,计算什么的...
     }
+在代码块使用 `$result` 来改变输出结果
+
+    @{
+        for(var i = 0 ; i < 10;i++ )
+        {
+            $result += '<div>';
+            $result += i;
+            $result += '</div>';
+        }
+    }
+
 
 ##2.变量输出
     @(variable)
@@ -117,5 +128,4 @@ js代码
         });
     </script>
     
-</body>
-</html>
+在模板中使用 `@($index)` 来表示索引

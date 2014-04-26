@@ -262,6 +262,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             return model.processedIndex;
         },
         processEach: function (model, index) {
+            //$index引用 index索引值
             //处理@each(item in items) { <div>@(item)</div> }
             var remain = model.template.substring(index);
             //'(' ')'
@@ -274,7 +275,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
             //1.for(var i in items){ item = items[i];
             //item in items
-            var loop = model.template.substring(firstSmallIndex+1, secondSmallIndex).trim();
+            var loop = model.template.substring(firstSmallIndex + 1, secondSmallIndex).trim();
             var inIndex = loop.indexOf('in');
             var item = loop.substring(0, inIndex).trim()
             var items = loop.substring(inIndex + 2).trim();
@@ -284,7 +285,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //2.循环体
             //{ <div>@(data)</div> }
             var loopContent = model.template.substring(
-                firstBigIndex+1, secondBigIndex).trim();
+                firstBigIndex + 1, secondBigIndex).trim();
             var innerSegments = this.process(loopContent);
             model.segments = model.segments.concat(innerSegments);
 
@@ -419,7 +420,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
         //var func=SegmentCompiler.compile(Segment[] segmnets)
         compile: function (segments) {
             var functionContent = [];
-            functionContent.push("var result='';");
+            functionContent.push("var $result='';");
+            //在code中可以使用 $result 变量增加输出内容
 
             for (var i in segments)
             {
@@ -436,7 +438,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //不允许空值,就是值不存在的情况下会报错
                             //@(data)
                             //result.push(data);
-                            var inner = "result+={0};".format(data);
+                            var inner = "$result+={0};".format(data);
                             functionContent.push(inner);
                         }
                         else
@@ -445,7 +447,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //@(data)
                             //if(typeof(data) != 'undefined' && data) result.push(data);
                             //else result.push("data");
-                            var inner = "if(typeof({0}) != 'undefined' && {0}) result+={0}; else result+='{0}';".format(data);
+                            var inner = "if(typeof({0}) != 'undefined' && {0}) $result+={0}; else $result+='{0}';".format(data);
                             functionContent.push(inner);
                         }
                         break;
@@ -454,7 +456,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                         //result+='div';
                         // "div"
                         //result+='\"div\"';
-                        var inner = "result+='{0}';".format(
+                        var inner = "$result+='{0}';".format(
                             this.escapeInFunction(data)
                             //将String直接量中的 ' " 屏蔽
                         );
@@ -464,8 +466,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
                         break;
                 }
             }
+            functionContent.push("return $result;");//return $result;
 
-            functionContent.push("return result;");
             return new Function(this.modelName, functionContent.join(''));
         }
     };
@@ -500,7 +502,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
         },
 
         version: "0.3.1",
-        updateDate : "2014-4-22"
+        updateDate: "2014-4-22"
     };
 
     //导出
@@ -646,6 +648,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //---------------------------------------
             //var func = $(selector).compileRepeat(); var html=func(ViewBag);
             compileRepeat: function () {
+                //使用 $index 来引用索引
                 var segments = [];
 
                 var repeatAttr =
