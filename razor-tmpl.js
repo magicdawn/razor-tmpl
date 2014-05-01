@@ -1,6 +1,6 @@
 ﻿/*
  Created BY Magicdawn;
- 2014-4-15 12:51:10
+ 2014-5-1 18:29:06
 
  v0.2
  Segments容易修改维护
@@ -502,7 +502,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
         },
 
         version: "0.3.1",
-        updateDate: "2014-4-22"
+        updateDate: "2014-5-1"
     };
 
     //导出
