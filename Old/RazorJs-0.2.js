@@ -590,8 +590,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //---------------------------------------
             //---<div razor-repeat='item in items'>
             //---------------------------------------
-            //var func = $(selector).compileRepeat(); var html=func(ViewBag);
-            compileRepeat: function () {
+            //var func = $(selector).compileEach(); var html=func(ViewBag);
+            compileEach: function () {
                 var segments = [];
 
                 var repeatAttr =
@@ -625,9 +625,9 @@ String.prototype.format = function (obj0, obj1, obj2) {
                 var func = SegmentCompiler.compile(segments);
                 return func;
             },
-            //void $(selector).renderRepeat(ViewBag);
-            renderRepeat: function (ViewBag) {
-                var func = this.compileRepeat();
+            //void $(selector).renderEach(ViewBag);
+            renderEach: function (ViewBag) {
+                var func = this.compileEach();
                 var result = func(ViewBag);
 
                 //保存innerTemplate

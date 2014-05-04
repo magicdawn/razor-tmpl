@@ -8,11 +8,11 @@
     <script>
         $(function () {
             $("#btn1").click(function () {
-                $("#test-razor-for").renderNode();
+                $("#test-razor-for").render();
             });
 
             $("#btn2").click(function () {
-                $("#test-razor-ViewBag").renderNode({
+                $("#test-razor-ViewBag").render({
                     list: [
                         { age: 18, name: "zhangsan" },
                         { age: 19, name: "lisi" },

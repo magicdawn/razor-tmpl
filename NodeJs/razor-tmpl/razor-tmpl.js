@@ -1,9 +1,5 @@
 ﻿/*
  Created BY Magicdawn;
- 2014-4-15 12:51:10
-
- v0.2
- Segments容易修改维护
  */
 
 //usage : var replaced = "xxx".replaceAll("old","new");
@@ -262,6 +258,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             return model.processedIndex;
         },
         processEach: function (model, index) {
+            //$index引用 index索引值
             //处理@each(item in items) { <div>@(item)</div> }
             var remain = model.template.substring(index);
             //'(' ')'
@@ -274,7 +271,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
 
             //1.for(var i in items){ item = items[i];
             //item in items
-            var loop = model.template.substring(firstSmallIndex+1, secondSmallIndex).trim();
+            var loop = model.template.substring(firstSmallIndex + 1, secondSmallIndex).trim();
             var inIndex = loop.indexOf('in');
             var item = loop.substring(0, inIndex).trim()
             var items = loop.substring(inIndex + 2).trim();
@@ -284,7 +281,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             //2.循环体
             //{ <div>@(data)</div> }
             var loopContent = model.template.substring(
-                firstBigIndex+1, secondBigIndex).trim();
+                firstBigIndex + 1, secondBigIndex).trim();
             var innerSegments = this.process(loopContent);
             model.segments = model.segments.concat(innerSegments);
 
@@ -419,7 +416,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
         //var func=SegmentCompiler.compile(Segment[] segmnets)
         compile: function (segments) {
             var functionContent = [];
-            functionContent.push("var result='';");
+            functionContent.push("var $result='';");
+            //在code中可以使用 $result 变量增加输出内容
 
             for (var i in segments)
             {
@@ -436,7 +434,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //不允许空值,就是值不存在的情况下会报错
                             //@(data)
                             //result.push(data);
-                            var inner = "result+={0};".format(data);
+                            var inner = "$result+={0};".format(data);
                             functionContent.push(inner);
                         }
                         else
@@ -445,7 +443,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //@(data)
                             //if(typeof(data) != 'undefined' && data) result.push(data);
                             //else result.push("data");
-                            var inner = "if(typeof({0}) != 'undefined' && {0}) result+={0}; else result+='{0}';".format(data);
+                            var inner = "if(typeof({0}) != 'undefined' && {0}) $result+={0}; else $result+='{0}';".format(data);
                             functionContent.push(inner);
                         }
                         break;
@@ -454,7 +452,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                         //result+='div';
                         // "div"
                         //result+='\"div\"';
-                        var inner = "result+='{0}';".format(
+                        var inner = "$result+='{0}';".format(
                             this.escapeInFunction(data)
                             //将String直接量中的 ' " 屏蔽
                         );
@@ -464,9 +462,16 @@ String.prototype.format = function (obj0, obj1, obj2) {
                         break;
                 }
             }
-
-            functionContent.push("return result;");
-            return new Function(this.modelName, functionContent.join(''));
+            functionContent.push("return $result;");//return $result;
+            try
+            {
+                return new Function(this.modelName, functionContent.join(''));
+            }
+            catch (e)
+            {
+                console.log("new Function出错,请检查 模板语法 ...")
+                return new Function("return '';");
+            }
         }
     };
 
@@ -499,8 +504,8 @@ String.prototype.format = function (obj0, obj1, obj2) {
             this.enableEmptyValue(false);
         },
 
-        version: "0.3.1",
-        updateDate : "2014-4-22"
+        version: "0.4.1",
+        updateDate: "2014-5-4"
     };
 
     //导出
@@ -525,175 +530,92 @@ String.prototype.format = function (obj0, obj1, obj2) {
             $("[razor-template]").hide();
         });
 
+        //"for(var xxx=xxx){" = getLoopHeader(jqObj)
+        var getLoopHeader = function (jqObj) {
+            var attr = jqObj.attr("razor-for") || jqObj.attr("data-razor-for");
+            if (attr)
+            {
+                return 'for({0}){'.format(attr.trim());
+            }
+            attr = jqObj.attr("razor-if") || jqObj.attr("data-razor-if");
+            if (attr)
+            {
+                return 'if({0}){'.format(attr.trim());
+            }
+
+            attr = jqObj.attr("razor-while") || jqObj.attr("data-razor-while");
+            if (attr)
+            {
+                return 'while({0}){'.format(attr.trim());
+            }
+
+            attr = jqObj.attr("razor-each") || jqObj.attr("data-razor-each");
+            if (attr)
+            {
+                return "each({0}){".format(attr);
+            }
+
+            //啥都不是
+            return '';
+        }
+
         $.fn.extend({
             //------------------------------------------
             //-----render 表示处理节点的innerHtml
             //------------------------------------------
             //var func = $(selector).compile();
             compile: function () {
-                return razor.compile(this.html());
-            },
-            //String html=$("#id").render(ViewBag)
-            render: function (ViewBag) {
-                var html = this.html(); //this是jquery对象
-                return razor.render(html, ViewBag);
-            },
-            //render到节点的parent
-            //$("#template-id").renderToParent(ViewBag)
-            renderToParent: function (ViewBag) {
-                var html = this.render(ViewBag);
-                this.parent().append(html);
-            },
-            //renderInParent,会清空parent的内容,再append,会覆盖此Script template
-            renderInParent: function (ViewBag, keepScriptTemplate) {
-                var result = this.render(ViewBag);
-                if (keepScriptTemplate)
+                var template = '';
+
+                if (this[0].tagName === "SCRIPT")
                 {
-                    //保留此script template
-                    var scriptTemplate = this;
-                    this.parent().html("");
-                    this.parent().append(this);
-                    this.parent().append(result);
+                    template = this.html();
                 }
                 else
                 {
-                    this.parent().html(result);
+                    //div 的 innerHTML 已经不是模板
+                    template = this.attr("razor-template") || this.html();
+                    //razor-template
+                    //  razor-for
+                    //  razor-each
+                    var loopHeader = getLoopHeader(this);
+                    if (loopHeader)
+                    {
+                        //@ + for(){ + xxx + }
+                        template = SegementProcesser.symbol + loopHeader + template + '}';
+                    }
                 }
+                return razor.compile(template);
             },
 
-            //----------------------------------------------
-            //---Node 表示节点上有 要处理的内容
-            //---<div razor-template razor-for="var i=0;i<ViewBag.length;i++">
-            //-----------------------------------------------
-            //var func=$(选择器).compileNode();
-            compileNode: function () {
-                var segments = [];
-
-                var loop = (function (jqObj) {
-                    var loop = {
-                        content: null,
-                        symbol: null
-                    };
-
-                    var attr = jqObj.attr("razor-for") || jqObj.attr("data-razor-for");
-                    if (attr)
-                    {
-                        loop.content = attr;
-                        loop.symbol = 'for';
-                        return loop;
-                    }
-
-                    attr = jqObj.attr("razor-if") || jqObj.attr("data-razor-if");
-                    if (attr)
-                    {
-                        loop.content = attr;
-                        loop.symbol = 'if';
-
-                        return loop;
-                    }
-
-                    attr = jqObj.attr("razor-while") || jqObj.attr("data-razor-while");
-                    if (attr)
-                    {
-                        loop.content = attr;
-                        loop.symbol = 'while';
-
-                        return loop;
-                    }
-                    return loop;
-                })(this);
-                if (loop.symbol)
-                {
-                    //razor-for="var i =0;i<10;i++"
-                    var content = loop.symbol + "(" + loop.content + "){";
-                    segments.push(new Segment(content, ESegmentType.CodeBlock));
-                }
-
-                //在innerrender
-                var innerTemplate = this.attr("razor-template") || this.html();
-                var innerSegments = SegementProcesser.process(innerTemplate);
-                segments = segments.concat(innerSegments);
-
-                //最后一个}
-                if (loop.symbol)
-                {
-                    segments.push(new Segment('}', ESegmentType.CodeBlock));
-                }
-
-                //拿到segments -> compile -> func
-                var func = SegmentCompiler.compile(segments);
-                return func;
-            },
-            //void $(选择器).renderNode(ViewBag);//会调用show
-            renderNode: function (ViewBag) {
-                var func = this.compileNode();
+            //String html=$("#id").render(ViewBag)
+            render: function (ViewBag) {
+                var func = this.compile();
                 var result = func(ViewBag);
 
-                //保存innerTemplate
-                if (!this.attr("razor-template"))
+                if (this[0].tagName != "SCRIPT")
                 {
-                    //只在第一次render的时候保存
-                    var innerTemplate = this.html().trim();
-                    this.attr("razor-template", innerTemplate);
+                    //1.save razor-template
+                    if (!this.attr("razor-template"))
+                    {
+                        //只在第一次render的时候保存
+                        var innerTemplate = this.html().trim();
+                        this.attr("razor-template", innerTemplate);
+                    }
+                    //2.append result
+                    this.html(result);
+                    //3.make it show
+                    this.show();
                 }
 
-                this.html(result);
-                this.show();
+                return result;
             },
 
-            //---------------------------------------
-            //---<div razor-repeat='item in items'>
-            //---------------------------------------
-            //var func = $(selector).compileRepeat(); var html=func(ViewBag);
-            compileRepeat: function () {
-                var segments = [];
-
-                var repeatAttr =
-                    this.attr("razor-repeat").trim() ||
-                        this.attr("data-razor-repeat").trim();
-                if (repeatAttr)
-                {
-                    //razor-repeat="不为空"
-                    //item in items
-                    var inIndex = repeatAttr.indexOf('in');
-                    var item = repeatAttr.substring(0, inIndex).trim(); //变量item
-                    var items = repeatAttr.substring(inIndex + 2).trim(); //集合items
-
-                    //1.开头的for
-                    var content = "for(var $index in {0}){ var {1} = {0}[$index];".format(items, item);
-                    segments.push(new Segment(content, ESegmentType.CodeBlock));
-                }
-
-                //2.中间内容
-                var innerTemplate = this.attr("razor-template") || this.html();
-                var innerSegments = SegementProcesser.process(innerTemplate);
-                segments = segments.concat(innerSegments);
-
-                if (repeatAttr)
-                {
-                    //3.最后,与1对应的 '}'
-                    segments.push(new Segment('}', ESegmentType.CodeBlock));
-                }
-
-                //compile : segments -> func
-                var func = SegmentCompiler.compile(segments);
-                return func;
-            },
-            //void $(selector).renderRepeat(ViewBag);
-            renderRepeat: function (ViewBag) {
-                var func = this.compileRepeat();
-                var result = func(ViewBag);
-
-                //保存innerTemplate
-                if (!this.attr("razor-template"))
-                {
-                    //只在第一次render的时候保存
-                    var innerTemplate = this.html().trim();
-                    this.attr("razor-template", innerTemplate);
-                }
-
-                this.html(result);
-                this.show();
+            //render到节点的parent
+            //$("#template-id").renderToParent(ViewBag)
+            renderToParent: function (ViewBag) {
+                var html = razor.render(this.html(), ViewBag);
+                this.parent().append(html);
             }
         });
     }

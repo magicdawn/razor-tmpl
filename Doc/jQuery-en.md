@@ -35,5 +35,5 @@ e.g.
         <div>@(item.age)</div>
     </div>
 Note:
-1. use `$(selector).renderRepeat(ViewBag)`to render & show it.
+1. use `$(selector).renderEach(ViewBag)`to render & show it.
 2. you can use the `index` variable in the loop content,`@(index)`
