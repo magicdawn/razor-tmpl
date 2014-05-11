@@ -2,20 +2,41 @@
  Created BY Magicdawn;
  */
 
-//usage : var replaced = "xxx".replaceAll("old","new");
-String.prototype.replaceAll = function (oldValue, replaceValue) {
+//usage : var replaced = "xxx".razorReplaceAll("old","new");
+String.prototype.razorReplaceAll = function (oldValue, replaceValue) {
     return this.replace(new RegExp(oldValue, 'g'), replaceValue);
 };
-//usage : "xxx".format(obj0, obj1, obj2); no parameter count limit
-String.prototype.format = function (obj0, obj1, obj2) {
+//usage : "xxx".razorFormat(obj0, obj1, obj2); no parameter count limit
+String.prototype.razorFormat = function (obj0, obj1, obj2) {
     var result = this;
     for (var i in arguments)
     {
         //将{0} -> obj[0]
         //new RegExp("\\{ 0 \\\}",g)
-        result = result.replaceAll("\\{" + i + "\\}", arguments[i].toString());
+        result = result.razorReplaceAll("\\{" + i + "\\}", arguments[i].toString());
     }
     return result;
+};
+String.prototype.razorTrimLeft = function (charsForTrim) {
+    var res = [].slice.call(this);//res = [] array
+    var chars = [].slice.call(charsForTrim);
+    while (chars.indexOf(res[0]) > -1)
+    {
+        res.shift();
+    }
+    return res.join('');
+};
+String.prototype.razorTrimRight = function (charsForTrim) {
+    var res = [].slice.call(this);//res = [] array
+    var chars = [].slice.call(charsForTrim);
+    while (chars.indexOf(res[res.length - 1]) > -1)
+    {
+        res.pop();
+    }
+    return res.join('');
+};
+String.prototype.razorTrim = function (charsForTrim) {
+    return this.razorTrimLeft(charsForTrim).razorTrimRight(charsForTrim);
 };
 
 (function (global) {
@@ -275,7 +296,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             var inIndex = loop.indexOf('in');
             var item = loop.substring(0, inIndex).trim()
             var items = loop.substring(inIndex + 2).trim();
-            var loopCode = "for(var $index in {1}) { var {0} = {1}[$index];".format(item, items);
+            var loopCode = "for(var $index in {1}) { var {0} = {1}[$index];".razorFormat(item, items);
             model.segments.push(new Segment(loopCode, ESegmentType.CodeBlock));
 
             //2.循环体
@@ -391,9 +412,9 @@ String.prototype.format = function (obj0, obj1, obj2) {
         //'&gt;'    ---->    >
         //'&amp;'   ---->    &
         getOriginalFromEscapedCode: function (variable) {
-            return variable.replaceAll('&lt;', '<')
-                .replaceAll('&gt;', '>')
-                .replaceAll('&amp;', '&');
+            return variable.razorReplaceAll('&lt;', '<')
+                .razorReplaceAll('&gt;', '>')
+                .razorReplaceAll('&amp;', '&');
         }
     };
 
@@ -434,7 +455,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //不允许空值,就是值不存在的情况下会报错
                             //@(data)
                             //result.push(data);
-                            var inner = "$result+={0};".format(data);
+                            var inner = "$result+={0};".razorFormat(data);
                             functionContent.push(inner);
                         }
                         else
@@ -443,7 +464,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                             //@(data)
                             //if(typeof(data) != 'undefined' && data) result.push(data);
                             //else result.push("data");
-                            var inner = "if(typeof({0}) != 'undefined' && {0}) $result+={0}; else $result+='{0}';".format(data);
+                            var inner = "if(typeof({0}) != 'undefined' && {0}) $result+={0}; else $result+='{0}';".razorFormat(data);
                             functionContent.push(inner);
                         }
                         break;
@@ -452,7 +473,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
                         //result+='div';
                         // "div"
                         //result+='\"div\"';
-                        var inner = "$result+='{0}';".format(
+                        var inner = "$result+='{0}';".razorFormat(
                             this.escapeInFunction(data)
                             //将String直接量中的 ' " 屏蔽
                         );
@@ -469,7 +490,7 @@ String.prototype.format = function (obj0, obj1, obj2) {
             }
             catch (e)
             {
-                console.log("new Function出错,请检查 模板语法 ...")
+                console.log("new Function出错,请检查 模板语法 ...");
                 return new Function("return '';");
             }
         }
@@ -489,23 +510,35 @@ String.prototype.format = function (obj0, obj1, obj2) {
         },
 
         //自定义相关
-        changeSymbol: function (newSymbol) {
+        symbol: function (newSymbol) {
+            // get
+            if (!newSymbol) return SegementProcesser.symbol;
+
+            // set
             SegementProcesser.symbol = newSymbol;
+            return this;
         },
-        changeModelName: function (newModelName) {
+        model: function (newModelName) {
+            // get
+            if (!newModelName) return SegmentCompiler.modelName;
+
+            //2 set
             SegmentCompiler.modelName = newModelName;
+            return this;
         },
         enableEmptyValue: function (boolEnable) {
             SegmentCompiler.enableEmptyValue = boolEnable;
+            return this;
         },
         init: function () {
             this.changeSymbol('@');
             this.changeModelName('ViewBag');
             this.enableEmptyValue(false);
+            return this;
         },
 
-        version: "0.4.1",
-        updateDate: "2014-5-4"
+        version: "0.5.2",
+        updateDate: "2014-5-11"
     };
 
     //导出
@@ -535,24 +568,24 @@ String.prototype.format = function (obj0, obj1, obj2) {
             var attr = jqObj.attr("razor-for") || jqObj.attr("data-razor-for");
             if (attr)
             {
-                return 'for({0}){'.format(attr.trim());
+                return 'for({0}){'.razorFormat(attr.trim());
             }
             attr = jqObj.attr("razor-if") || jqObj.attr("data-razor-if");
             if (attr)
             {
-                return 'if({0}){'.format(attr.trim());
+                return 'if({0}){'.razorFormat(attr.trim());
             }
 
             attr = jqObj.attr("razor-while") || jqObj.attr("data-razor-while");
             if (attr)
             {
-                return 'while({0}){'.format(attr.trim());
+                return 'while({0}){'.razorFormat(attr.trim());
             }
 
             attr = jqObj.attr("razor-each") || jqObj.attr("data-razor-each");
             if (attr)
             {
-                return "each({0}){".format(attr);
+                return "each({0}){".razorFormat(attr);
             }
 
             //啥都不是
