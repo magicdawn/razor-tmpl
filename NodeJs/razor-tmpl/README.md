@@ -57,3 +57,22 @@ razor的牛B,不是我说出来的,那个C#版的razor-engine也是开源的,可
         //for while if 等都可以支持	
 	</script>
 更详细的请看 [Doc/template-ch.md](https://code.csdn.net/magicdawn/razor-tmpl/tree/master/Doc/Template-ch.md)
+
+
+
+
+
+1. 在node程序中使用,`razor.render(template,ViewBag)`
+2. 在express mvc中使用
+    
+
+    //1.在app.js中注册.razor扩展名
+    app.engine(".razor",require("razor-tmpl")._express);
+    //2.在回发请求的时候,指定扩展名
+    //例如在routes\index.js中
+    module.exports = function(req,res){
+        //get /
+        res.render("index.razor",{
+            //ViewBag 数据
+        });
+    }

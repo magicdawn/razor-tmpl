@@ -21,7 +21,7 @@
                         return Math.floor(Math.random()*255);
                     };
                     var getRandomColor = function(){
-                        return 'rgb({0},{1},{2})'.format(getRandomInt(),getRandomInt(),getRandomInt());
+                        return 'rgb({0},{1},{2})'.razorFormat(getRandomInt(),getRandomInt(),getRandomInt());
                     };
                 }
                 <div style="background-color:@(getRandomColor());color:@(getRandomColor())">这是第 @(i) 个</div>

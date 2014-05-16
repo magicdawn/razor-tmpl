@@ -10,7 +10,7 @@
         $(function () {
             $("#btn1").click(function () {
                 var $div = $("#container");
-                $div.html("这是文字啊,{0},位置会被输入的代替...".format($("#text-input").val()));
+                $div.html("这是文字啊,{0},位置会被输入的代替...".razorFormat($("#text-input").val()));
             });
 
             //1+2=3=2+1

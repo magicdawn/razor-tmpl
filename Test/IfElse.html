@@ -7,7 +7,7 @@
     <script src="../razor-tmpl.js"></script>
     <script>
         $(function () {
-            $("#template").renderEach({
+            $("#template").render({
                 persons: [
                     { name: "zhangsan", age: 17 },
                     { name: "lisi", age: 18 },
@@ -19,7 +19,7 @@
 </head>
 <body>
     <div>
-        <div razor-template razor-repeat="p in ViewBag.persons" id="template">
+        <div razor-template razor-each="p in ViewBag.persons" id="template">
             @{
                 //是成人 ?
                 var isAdult = p.age >= 18;

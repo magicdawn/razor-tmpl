@@ -1,4 +1,4 @@
-##一 razor-tmpl Basic Functions
+#razor-tmpl Basic Functions
 
 ##1.`razor.render(template,ViewBag);`
 render function,will change the template to the result
@@ -23,13 +23,13 @@ compile function,will compile the template string to a function,assume `var func
     //func can receive a parameter : ViewBag
     var result = func({});//ViewBag为空
 
-#二 Razor Custom
-##1.`razor.changeSymbol('~')`
-In ASP.NET MVC,when you write a template in a `.cshtml View` , `'@'` is the symbol of the Razor ViewEngine.so use `razor.changeSymbol("~")` to change the symbol you want to use
+#Razor Custom
+##3.`razor.symbol('~')`
+In ASP.NET MVC,when you write a template in a `.cshtml View` , `'@'` is the symbol of the Razor ViewEngine.so use `razor.symbol("~")` to change the symbol you want to use
 
 e.g.
 
-    razor.changeSymbol("~");
+    razor.symbol("~");
     <script type="text/template">
         ~{
             var data= 10;
@@ -41,7 +41,7 @@ e.g.
     </script>
 that could work ...
 
-##2.`razor.changeModelName("model")`
+##2.`razor.model("model")`
 "ViewBag"is default variable you can use in a template to refer passed data,use this function to change default
 
 例子
@@ -51,7 +51,7 @@ that could work ...
         <div>@(model.age)</div>
     </script>
 
-    razor.changeModelName("model");
+    razor.model("model");
     var html=razor.render($("#template").html(),{
         name : "John" ，
         age ： 18

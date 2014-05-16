@@ -17,27 +17,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
     }
     return result;
 };
-String.prototype.razorTrimLeft = function (charsForTrim) {
-    var res = [].slice.call(this);//res = [] array
-    var chars = [].slice.call(charsForTrim);
-    while (chars.indexOf(res[0]) > -1)
-    {
-        res.shift();
-    }
-    return res.join('');
-};
-String.prototype.razorTrimRight = function (charsForTrim) {
-    var res = [].slice.call(this);//res = [] array
-    var chars = [].slice.call(charsForTrim);
-    while (chars.indexOf(res[res.length - 1]) > -1)
-    {
-        res.pop();
-    }
-    return res.join('');
-};
-String.prototype.razorTrim = function (charsForTrim) {
-    return this.razorTrimLeft(charsForTrim).razorTrimRight(charsForTrim);
-};
 
 (function (global) {
     "use strict";
@@ -531,14 +510,32 @@ String.prototype.razorTrim = function (charsForTrim) {
             return this;
         },
         init: function () {
-            this.changeSymbol('@');
-            this.changeModelName('ViewBag');
-            this.enableEmptyValue(false);
-            return this;
+            return this.symbol('@').model('ViewBag').enableEmptyValue(false);
         },
 
         version: "0.5.2",
-        updateDate: "2014-5-11"
+        updateDate: "2014-5-11",
+
+        //工具
+        encodeHtml: function (str) {
+            //在@(- data)不用这个因为速度太慢
+            //content += ".replace(/&/g,'&amp;')";
+            //content += ".replace(/</g,'&lt;')";
+            //content += ".replace(/>/g,'&gt;')";
+            //content += ".replace(/'/g,'&#39;')";
+            //content += '.replace(/"/g,"&#34;")';
+            //content += ".replace(/\\//g,'&#47;')";
+            return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/'/g, '&#39;')
+            .replace(/"/g, "&#34;")
+            .replace(/\//g, '&#47;');
+        },
+        decodeHtml: function (str) {
+            return SegementProcesser.getOriginalFromEscapedCode(str);
+        }
     };
 
     //导出
@@ -594,39 +591,37 @@ String.prototype.razorTrim = function (charsForTrim) {
 
         $.fn.extend({
             //------------------------------------------
-            //-----render 表示处理节点的innerHtml
+            //  render 表示处理节点的innerHtml
             //------------------------------------------
             //var func = $(selector).compile();
             compile: function () {
-                var template = '';
+                //div 的 innerHTML 已经不是模板
+                var template = this[0].tagName === "SCRIPT"
+                    ? this.html() //script标签直接取html()
+                    : this.attr("razor-template") || this.html();//div标签,先取razor-template属性
 
-                if (this[0].tagName === "SCRIPT")
+                //razor-for/while/if
+                //razor-each
+                // script | div 均可有这些属性
+                var loopHeader = getLoopHeader(this);
+                if (loopHeader)
                 {
-                    template = this.html();
-                }
-                else
-                {
-                    //div 的 innerHTML 已经不是模板
-                    template = this.attr("razor-template") || this.html();
-                    //razor-template
-                    //  razor-for
-                    //  razor-each
-                    var loopHeader = getLoopHeader(this);
-                    if (loopHeader)
-                    {
-                        //@ + for(){ + xxx + }
-                        template = SegementProcesser.symbol + loopHeader + template + '}';
-                    }
+                    //@ + for(){ + xxx + }
+                    template = SegementProcesser.symbol + loopHeader + template + '}';
                 }
                 return razor.compile(template);
             },
 
-            //String html=$("#id").render(ViewBag)
+            //-----------------------------------------
+            //  String html=$("#id").render(ViewBag)
+            //  如果是script -> string
+            //  如果是div ->html(render结果) & show
+            //-----------------------------------------
             render: function (ViewBag) {
                 var func = this.compile();
                 var result = func(ViewBag);
 
-                if (this[0].tagName != "SCRIPT")
+                if (this[0].tagName !== "SCRIPT")
                 {
                     //1.save razor-template
                     if (!this.attr("razor-template"))
