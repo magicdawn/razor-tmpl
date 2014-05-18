@@ -347,10 +347,20 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         },
         processComment: function (model, index) {
             // @* comment *@
-            var commentEnd = this.getSecondIndex(model.template, index);
-            model.processedIndex = commentEnd;
-
-            return commentEnd;
+            var remain = model.template.substring(index);
+            var xingIndex = remain.indexOf('*'+this.symbol);
+            if (xingIndex > -1)
+            {
+                //存在*@
+                var commentEnd = xingIndex + index + 1;
+                model.processedIndex = commentEnd;
+                return commentEnd;
+            }
+            else
+            {
+                //只有@* 没有*@
+                return index;
+            }
         },
 
         getSecondIndex: function (template, firstIndex) {
@@ -359,7 +369,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                 '{': '}',
                 '(': ')'
             };
-            pair[this.symbol] = this.symbol; //pair['@']='@';
 
             var first = template.substr(firstIndex, 1); //'{' or '('
             var second = pair[first];
@@ -370,7 +379,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                 var cur = template.substr(index, 1);
                 if (cur == second)
                 {
-                    //@  --> @ break;
                     count--;
                     if (count == 0)
                     {

@@ -24,7 +24,10 @@
                         return 'rgb({0},{1},{2})'.razorFormat(getRandomInt(),getRandomInt(),getRandomInt());
                     };
                 }
-                <div style="background-color:@(getRandomColor());color:@(getRandomColor())">这是第 @(i) 个</div>
+                @* 本来是style="width:80%" 把这个80用@(随机数)代替就是了 *@
+                <div style="background-color:@(getRandomColor());color:white;width:@(Math.random()*100)%;">
+                    这是第 @(i) 个
+                </div>
             </div>
         </div>
     </div>
