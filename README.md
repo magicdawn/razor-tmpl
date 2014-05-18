@@ -1,4 +1,4 @@
-##中文文档请看[csdn-code-magicdawn-razor_tmpl]()
+###中文文档请看[code.csdn.net/magicdawn/razor-tmpl-doc](https://code.csdn.net/magicdawn/razor-tmpl-doc)
 
 #Thanks To [kino.razor](https://github.com/kinogam/kino.razor)
 
@@ -11,10 +11,10 @@
 1. Note that : razor-tmpl can be used with no dependency, but if `jQuery` exists ,there will be more convenient functions ...
 2. So if you used jquery in your site, 1.first load `jquery` 2.then this-razor-tmpl
 ###Without jquery , you can use the `razor` object , see [Doc/Basic.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/Basic.md)
-###With jquery,convenient ways,see [Doc/jquery.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/jquery.md)
+###With jquery,convenient ways,see [Doc/jquery.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/jQuery.md)
 
 #3.Use In NodeJs
-`npm install razor-tmpl` see [npm module page](http://npmjs.org/magicdawn/razor-tmpl)
+`npm install razor-tmpl` see [npm module page](https://npmjs.org/package/razor-tmpl)
 
 #4.Template Syntax
     <script type="text/template">
@@ -57,8 +57,8 @@
             ---</br>
         }
 	</script>
-see more [Doc/Template.md]()
+see more [Doc/Template.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/Template.md)
 
 #4.render speed
 Comparsion : http://cnodejs.org/topic/4f16442ccae1f4aa27001109
-Result : [benchmark.js]()
+Result : [benchmark.js](https://github.com/magicdawn/razor-tmpl/blob/master/benchmark.js)
