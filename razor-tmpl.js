@@ -19,6 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
+    var version = '0.6.0';
+    var update_date = '2014-5-20';
     "use strict";
 
     //-----------------------------------------
@@ -521,8 +523,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             return this.symbol('@').model('ViewBag').enableEmptyValue(false);
         },
 
-        version: "0.5.2",
-        updateDate: "2014-5-11",
+        version: version,
+        update_date: update_date,
 
         //工具
         encodeHtml: function (str) {
