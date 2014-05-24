@@ -1,0 +1,13 @@
+﻿@{
+    layout = "layout.razor";//指定上一级layout
+}
+
+<div id="base-left">
+    @renderSection('left')
+</div>
+<div id="base-center">
+    @renderBody()
+</div>
+<div id="base-right">
+    @renderSection('right')
+</div>

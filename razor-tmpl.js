@@ -19,8 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.6.0';
-    var update_date = '2014-5-20';
+    var version = '0.6.1';
+    var update_date = '2014-5-24';
     "use strict";
 
     //-----------------------------------------
@@ -89,7 +89,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 
         //Segment[] result = SegmentProcesser.process(String template);
         process: function (template) {
-            var model = new StringBlockModel(simpleMinfy(template));
+            var model = new StringBlockModel(template);
             this.processStringBlock(model);
             return model.segments;
         },
@@ -475,7 +475,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             functionContent.push("return $result;");//return $result;
             try
             {
-                return new Function(this.modelName, functionContent.join(''));
+                return new Function(this.modelName, functionContent.join('\n'));
             }
             catch (e)
             {

@@ -6,17 +6,21 @@ module.exports.getLayout = function (template) {
     //@{ layout = 'other view.razor';}
     //通过正则测出
     var arr = /\blayout\s*?=\s*?['"]([\s\S]+?)['"]/.exec(template);
-    if (arr[1]) return arr[1];
+    if (arr && arr[1]) return arr[1];
     return "null";
 };
 
 //将设置了layout的东西填入layout
 module.exports.fillLayout = function (layout_content, template) {
     var sections = splitTemplate(template);
-    var res = layout_content.replace(/\SrenderBody\(\)/, sections['body']);
+    var res = layout_content;
+
+    //当布局嵌套时,renderBody()可能包含renderSection,不能被replace了
+    //后替换renderBody()解决
     res = res.replace(/\SrenderSection\(['"](\w+)['"]\)/g, function (match, group) {
         return sections[group] || "";
     });
+    res = res.replace(/\SrenderBody\(\)/, sections['body']);
     return res;
 };
 
