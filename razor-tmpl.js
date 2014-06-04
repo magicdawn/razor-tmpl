@@ -19,8 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.6.1';
-    var update_date = '2014-5-24';
+    var version = '0.6.2';
+    var update_date = '2014-6-4';
     "use strict";
 
     //-----------------------------------------
@@ -277,7 +277,9 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             var inIndex = loop.indexOf('in');
             var item = loop.substring(0, inIndex).trim()
             var items = loop.substring(inIndex + 2).trim();
-            var loopCode = "for(var $index in {1}) { var {0} = {1}[$index];".razorFormat(item, items);
+
+            //循环体
+            var loopCode = "for(var $index = 0,length = {1}.length;$index < length;$index++) { var {0} = {1}[$index];".razorFormat(item, items);
             model.segments.push(new Segment(loopCode, ESegmentType.CodeBlock));
 
             //2.循环体
@@ -350,7 +352,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         processComment: function (model, index) {
             // @* comment *@
             var remain = model.template.substring(index);
-            var xingIndex = remain.indexOf('*'+this.symbol);
+            var xingIndex = remain.indexOf('*' + this.symbol);
             if (xingIndex > -1)
             {
                 //存在*@
