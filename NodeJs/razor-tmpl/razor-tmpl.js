@@ -19,7 +19,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.6.2';
+    var version = '0.6.3';
     var update_date = '2014-6-4';
     "use strict";
 
@@ -654,7 +654,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //render到节点的parent
             //$("#template-id").renderToParent(ViewBag)
             renderToParent: function (ViewBag) {
-                var html = razor.render(this.html(), ViewBag);
+                var html = this.render(ViewBag);
                 this.parent().append(html);
             }
         });
