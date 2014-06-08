@@ -6,7 +6,7 @@ e.g.
     @{
         var data = "<div>All content display,include the div wrapper</div>"
     }
-    @(- data)
+    @(- data) @* or @(-data) the space is optional,and this is a razor-comment *@
 
 that will display the whole result,include the wrapper div
 

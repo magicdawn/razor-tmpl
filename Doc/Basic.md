@@ -44,7 +44,7 @@ that could work ...
 ##2.`razor.model("model")`
 "ViewBag"is default variable you can use in a template to refer passed data,use this function to change default
 
-例子
+e.g.
         
     <script type="text/template" id="template">
         <div>@(model.name)</div>
@@ -61,9 +61,32 @@ that could work ...
     //<div>John</div>
     //<div>18</div>
 
-##3.`razor.enableEmptyValue(true or false)`
-in a template,if you set `enableEmptyValue(true)`,when the func accounts a variable whose value is undefined in current context,it will give out the string instead of evaluate it,it's very useful when debug.e.g `@(data)`,if
- the `data` variable is undefined or null,it will give out the string `"data"`,and if you have not set `enableEmptyValue(true)`,the program account an error and exit without result.
+##3.`razor.withViewBag = true|false`
+default `razor.withViewBag = true` ,that means you need to specify ViewBag.variable to refer data contains in the `ViewBag` object
+Just like
+```
+//1.prepare template
+var tmpl = "@(ViewBag.name)";
+
+//2.prepare ViewBag data
+var ViewBag = {};
+Viewbag.name = "John";
+
+//3.call render
+razor.render(tmpl,ViewBag); => "John"
+```
+####since you set `razor.withViewBag = false`,`razor-tmpl` this library will help you decalre the `name` variable,just like `var name = ViewBag["name"]`,
+```
+//1.prepare template
+var tmpl = "@(name)";
+
+//2.call render
+razor.render(tmpl,{
+    name : "John"
+}); => "John"
+```
+Notice that `@(name)` , no `ViewBag`specified
+###And `@(= name) or @(=name)` will give the same effect,the `=` assign symbol will attach the `ViewBag.` to `name`,so `@(= name)` is same to @(ViewBag.name)
 
 ##4.`razor.init()`
 set the previous custom functions to the default state
@@ -72,4 +95,4 @@ The default state is
 
     symbol : '@'
     modelName : 'ViewBag'
-    enableEmptyValue : false
+    withViewBag : true

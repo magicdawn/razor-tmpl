@@ -19,8 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.6.3';
-    var update_date = '2014-6-4';
+    var version = '0.7.0';
+    var update_date = '2014-6-8';
     "use strict";
 
     //-----------------------------------------
@@ -199,10 +199,10 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             if (content)
             {
                 content = this.getOriginalFromEscapedCode(content); //像@( p.age &gt;= 10)
-                if (/^- /g.test(content))
+                if (/^-/g.test(content))
                 {
                     //以-空格开头 @(- data) 这种escape
-                    content = content.substring(2);
+                    content = content.substring(1).trim();
 
                     //escape 86, non escape 8451
                     //content += ".encodeHtml()"; //速度太慢,不能接受
@@ -221,6 +221,13 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                     content += '.replace(/"/g,"&#34;")';
                     content += ".replace(/\\//g,'&#47;')";
 
+                    model.segments.push(new Segment(content, ESegmentType.Variable));
+                }
+                else if (/^=/g.test(content))
+                {
+                    //@(=name) => @(ViewBag.name)
+                    content = content.substring(1).trim(); //@(=name) || @(= name)
+                    content = SegmentCompiler.modelName + "." + content;
                     model.segments.push(new Segment(content, ESegmentType.Variable));
                 }
                 else
@@ -411,7 +418,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 
     var SegmentCompiler = {
         modelName: "ViewBag",
-        enableEmptyValue: false, //是否允许空值
 
         //将 ' => \'
         //将 " => \"
@@ -429,59 +435,47 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         compile: function (segments) {
             var functionContent = [];
             functionContent.push("var $result='';");
-            //在code中可以使用 $result 变量增加输出内容
-
-            for (var i in segments)
+            //在code中可以使用 $result 变量增加输出内容            
+            try
             {
-                var data = segments[i].Content;
-                switch (segments[i].SegmentType)
+                for (var i in segments)
                 {
-                    case ESegmentType.CodeBlock:
-                        //@{ var data=10; }
-                        functionContent.push(data);
-                        break;
-                    case ESegmentType.Variable:
-                        if (!this.enableEmptyValue)
-                        {
+                    var data = segments[i].Content;
+                    switch (segments[i].SegmentType)
+                    {
+                        case ESegmentType.CodeBlock:
+                            //@{ var data=10; }
+                            functionContent.push(data);
+                            break;
+                        case ESegmentType.Variable:
                             //不允许空值,就是值不存在的情况下会报错
                             //@(data)
                             //result.push(data);
                             var inner = "$result+={0};".razorFormat(data);
                             functionContent.push(inner);
-                        }
-                        else
-                        {
-                            //允许空值
-                            //@(data)
-                            //if(typeof(data) != 'undefined' && data) result.push(data);
-                            //else result.push("data");
-                            var inner = "if(typeof({0}) != 'undefined' && {0}) $result+={0}; else $result+='{0}';".razorFormat(data);
+                            break;
+                        case ESegmentType.String:
+                            //div
+                            //result+='div';
+                            // "div"
+                            //result+='\"div\"';
+                            var inner = "$result+='{0}';".razorFormat(
+                                this.escapeInFunction(data)
+                                //将String直接量中的 ' " 屏蔽
+                            );
                             functionContent.push(inner);
-                        }
-                        break;
-                    case ESegmentType.String:
-                        //div
-                        //result+='div';
-                        // "div"
-                        //result+='\"div\"';
-                        var inner = "$result+='{0}';".razorFormat(
-                            this.escapeInFunction(data)
-                            //将String直接量中的 ' " 屏蔽
-                        );
-                        functionContent.push(inner);
-                        break;
-                    default:
-                        break;
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
-            functionContent.push("return $result;");//return $result;
-            try
-            {
+                functionContent.push("return $result;");//return $result;
                 return new Function(this.modelName, functionContent.join('\n'));
             }
             catch (e)
             {
                 console.log("new Function出错,请检查 模板语法 ...");
+                console.log(e);
                 return new Function("return '';");
             }
         }
@@ -496,11 +490,22 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         },
         //String result=razor.render(String template,Object ViewBag)
         render: function (template, ViewBag) {
+            if (!this.withViewBag)
+            {
+                var codeDef = "";
+                for (var key in ViewBag)
+                {
+                    codeDef += "var {0} = ViewBag['{0}'];".razorFormat(key);
+                }
+                template = "@{" + codeDef + "}" + template;
+            }
+
             var func = this.compile(template);
             return func(ViewBag);
         },
 
         //自定义相关
+        withViewBag: true,
         symbol: function (newSymbol) {
             // get
             if (!newSymbol) return SegementProcesser.symbol;
@@ -517,12 +522,9 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             SegmentCompiler.modelName = newModelName;
             return this;
         },
-        enableEmptyValue: function (boolEnable) {
-            SegmentCompiler.enableEmptyValue = boolEnable;
-            return this;
-        },
         init: function () {
-            return this.symbol('@').model('ViewBag').enableEmptyValue(false);
+            this.withViewBag = true;
+            return this.symbol('@').model('ViewBag');
         },
 
         version: version,
@@ -599,7 +601,24 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 
             //啥都不是
             return '';
-        }
+        };
+        var getTemplate = function (jqObj) {
+            //div 的 innerHTML 已经不是模板
+            var template = jqObj[0].tagName === "SCRIPT"
+                ? jqObj.html() //script标签直接取html()
+                : jqObj.attr("razor-template") || jqObj.html();//div标签,先取razor-template属性
+
+            //razor-for/while/if
+            //razor-each
+            // script | div 均可有这些属性
+            var loopHeader = getLoopHeader(jqObj);
+            if (loopHeader)
+            {
+                //@ + for(){ + xxx + }
+                template = SegementProcesser.symbol + loopHeader + template + '}';
+            }
+            return template;
+        };
 
         $.fn.extend({
             //------------------------------------------
@@ -607,21 +626,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //------------------------------------------
             //var func = $(selector).compile();
             compile: function () {
-                //div 的 innerHTML 已经不是模板
-                var template = this[0].tagName === "SCRIPT"
-                    ? this.html() //script标签直接取html()
-                    : this.attr("razor-template") || this.html();//div标签,先取razor-template属性
-
-                //razor-for/while/if
-                //razor-each
-                // script | div 均可有这些属性
-                var loopHeader = getLoopHeader(this);
-                if (loopHeader)
-                {
-                    //@ + for(){ + xxx + }
-                    template = SegementProcesser.symbol + loopHeader + template + '}';
-                }
-                return razor.compile(template);
+                return razor.compile(getTemplate(this));
             },
 
             //-----------------------------------------
@@ -630,8 +635,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //  如果是div ->html(render结果) & show
             //-----------------------------------------
             render: function (ViewBag) {
-                var func = this.compile();
-                var result = func(ViewBag);
+                var template = getTemplate(this);
+                var result = razor.render(template, ViewBag);
 
                 if (this[0].tagName !== "SCRIPT")
                 {

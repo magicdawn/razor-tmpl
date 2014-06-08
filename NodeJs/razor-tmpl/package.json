@@ -1,6 +1,6 @@
 {
   "name": "razor-tmpl",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "description": "Razor Style Template Engine",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://code.csdn.net/magicdawn/razor-tmpl"
+    "url": "https://github.com/magicdawn/razor-tmpl"
   },
   "keywords": [
     "razor",
