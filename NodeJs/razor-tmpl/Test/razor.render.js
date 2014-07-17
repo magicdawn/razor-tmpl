@@ -21,8 +21,8 @@ describe('basic', function() {
         }, function(err, result) {
             //if (!err) console.log(result);
             //打log
-            console.log("layout用相对路径表示:");
-            console.log(result);
+            // console.log("layout用相对路径表示:");
+            // console.log(result);
         });
     });
 
@@ -32,7 +32,7 @@ describe('basic', function() {
             title: 'index',
             hello: 'hello razor'
         }, path.join(__dirname, 'view'));
-        console.log("~/绝对路径")
-        console.log(result);
+        // console.log("~/绝对路径")
+        // console.log(result);
     });
 });

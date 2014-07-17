@@ -12,7 +12,7 @@ var cache_layouts = {}; //存储一个文件的布局,一个view中的layout 运
 var cache_layouted_templates = {}; //应用了layout的模板
 
 //清除缓存
-razor.clearCache = function() {
+razor.clearCache = function () {
     cache_templates = {};
     cache_layouts = {};
     cache_layouted_templates = {};
@@ -25,8 +25,9 @@ razor.clearCache = function() {
 //  return string
 //-------------------------------------
 //原始模板
-razor.getTemplate = function(viewPath, encoding, callback) {
-    if (typeof encoding === "function") {
+razor.getTemplate = function (viewPath, encoding, callback) {
+    if (typeof encoding === "function")
+    {
         //省略encoding
         callback = encoding;
         encoding = 'utf8';
@@ -35,29 +36,34 @@ razor.getTemplate = function(viewPath, encoding, callback) {
     //callback(error,result)
     if (cache_templates[viewPath])
         callback(null, cache_templates[viewPath]);
-    else {
-        try {
-            fs.readFile(viewPath, encoding, function(err, result) {
+    else
+    {
+        try
+        {
+            fs.readFile(viewPath, encoding, function (err, result) {
                 if (err) throw err;
-                callback(null,cache_templates[viewPath] = result);
+                callback(null, cache_templates[viewPath] = result);
             });
         }
-        catch (e) {
+        catch (e)
+        {
             callback(e);
         }
     }
 };
-razor.getTemplateSync = function(viewPath, encoding) {
+razor.getTemplateSync = function (viewPath, encoding) {
     var result = cache_templates[viewPath];
     if (result) return result;
 
     //read
-    try {
+    try
+    {
         result = cache_templates[viewPath] = fs.readFileSync(viewPath, encoding || 'utf8');
         return result;
     }
-    catch (e) {
-        throw new Error("没有找到文件 : {0}".razorFormat(viewPath));
+    catch (e)
+    {
+        throw Error("没有找到文件 : {0}".razorFormat(viewPath));
     }
 };
 
@@ -66,67 +72,75 @@ razor.getTemplateSync = function(viewPath, encoding) {
 // 应用了 layout 的模板
 //
 //可省略rootdir
-razor.getFullTemplate = function(viewPath, ViewBag, rootDir, callback) {
+razor.getFullTemplate = function (viewPath, ViewBag, rootDir, callback) {
     ViewBag = ViewBag || {}; //从ViewBag中取layout
-    if (typeof rootDir === 'function') {
+    if (typeof rootDir === 'function')
+    {
         callback = rootDir; //~代表的根目录
         rootDir = null;
     }
 
-    try {
-        razor.getTemplate(viewPath, function(err, template) {
+    try
+    {
+        razor.getTemplate(viewPath, function (err, template) {
             if (err) throw err;
             //template : view文件
 
             var layout_path = ViewBag["layout"] || cache_layouts[viewPath];
-            if (!layout_path) {
+            if (!layout_path)
+            {
                 //first time parse layout
                 //真实layout 或者 "null"
                 cache_layouts[viewPath] = layout_path = layout.getLayout(template);
             }
 
             //no layout found
-            if (layout_path === 'null') {
+            if (layout_path === 'null')
+            {
                 callback(null, template);
                 return;
             }
 
             //reslove the relative(../layouts/) or the direct(~/)
-            if (layout_path[0] === '~' || layout_path[0] === '/') {
+            if (layout_path[0] === '~' || layout_path[0] === '/')
+            {
                 //绝对路径(~/views/xxx)
                 if (!rootDir) throw new Error("不支持mapPath操作,请使用相对路径表示 布局(layout)");
                 layout_path = require("./util.js").mapPath(rootDir, layout_path);
             }
-            else {
+            else
+            {
                 //相对路径(../layouts/leyout.razor)
                 layout_path = path.join(path.dirname(viewPath), layout_path);
             }
 
-            if (cache_layouted_templates[viewPath] && cache_layouted_templates[viewPath][layout_path]) {
+            if (cache_layouted_templates[viewPath] && cache_layouted_templates[viewPath][layout_path])
+            {
                 //chche里有
                 callback(null, cache_layouted_templates[viewPath][layout_path]);
                 return;
             }
 
             //读layout,拼接,存储,返回,ViewBag为null
-            razor.getFullTemplate(layout_path,null,function(err, layout_content) {
+            razor.getFullTemplate(layout_path, null, function (err, layout_content) {
                 if (err) throw err;
 
                 var full_template = layout.fillLayout(layout_content, template);
 
                 cache_layouted_templates[viewPath] = cache_layouted_templates[viewPath] || {};
                 cache_layouted_templates[viewPath][layout_path] = full_template;
-                
-                callback(null,full_template);
+
+                callback(null, full_template);
             });
         });
     }
-    catch (e) {
+    catch (e)
+    {
         callback(e);
     }
 };
 //viewBag/rootDir均可省略
-razor.getFullTemplateSync = function(viewPath, ViewBag, rootDir) {
+razor.getFullTemplateSync = function (viewPath, ViewBag, rootDir) {
     ViewBag = ViewBag || {}; //从ViewBag中取layout
 
     //1 get layout
@@ -134,7 +148,8 @@ razor.getFullTemplateSync = function(viewPath, ViewBag, rootDir) {
     //  no : return original template
     var template = razor.getTemplateSync(viewPath); //view    
     var layout_path = ViewBag["layout"] || cache_layouts[viewPath];
-    if (!layout_path) {
+    if (!layout_path)
+    {
         //first time parse layout
         //真实layout 或者 "null"
         cache_layouts[viewPath] = layout_path = layout.getLayout(template);
@@ -145,12 +160,14 @@ razor.getFullTemplateSync = function(viewPath, ViewBag, rootDir) {
     //2.2 with layout
     //  reslove layout&view
     //  save to cahce
-    if (layout_path[0] === '~' || layout_path[0] === '/') {
+    if (layout_path[0] === '~' || layout_path[0] === '/')
+    {
         //绝对路径(~/views/xxx)
         if (!rootDir) throw new Error("不支持mapPath操作,请使用相对路径表示 布局(layout)");
         layout_path = require("./util.js").mapPath(rootDir, layout_path);
     }
-    else {
+    else
+    {
         //相对路径(../layouts/leyout.razor)
         layout_path = path.join(path.dirname(viewPath), layout_path);
     }
@@ -163,7 +180,8 @@ razor.getFullTemplateSync = function(viewPath, ViewBag, rootDir) {
     //       },...
     //  }
     //
-    if (cache_layouted_templates[viewPath] && cache_layouted_templates[viewPath][layout_path]) {
+    if (cache_layouted_templates[viewPath] && cache_layouted_templates[viewPath][layout_path])
+    {
         //chche里有
         return cache_layouted_templates[viewPath][layout_path];
     }
@@ -182,24 +200,27 @@ razor.getFullTemplateSync = function(viewPath, ViewBag, rootDir) {
 //抽象
 //
 //view路径 ViewBag数据 [根路径~] callback(error,result) 
-razor.renderFile = function(viewPath, ViewBag, rootDir, callback) {
-    if (typeof rootDir === "function") {
+razor.renderFile = function (viewPath, ViewBag, rootDir, callback) {
+    if (typeof rootDir === "function")
+    {
         //省略了rootDir
         callback = rootDir;
         rootDir = null;
     }
     //callback(error,result)
-    try {
-        razor.getFullTemplate(viewPath,ViewBag,rootDir,function(err,template){
-            if(err) throw err;
-            callback(null,razor.render(template,ViewBag));
+    try
+    {
+        razor.getFullTemplate(viewPath, ViewBag, rootDir, function (err, template) {
+            if (err) throw err;
+            callback(null, razor.render(template, ViewBag));
         });
     }
-    catch (e) {
+    catch (e)
+    {
         callback(e);
     }
 }
-razor.renderFileSync = function(viewPath, ViewBag, rootDir) {
+razor.renderFileSync = function (viewPath, ViewBag, rootDir) {
     var fullTemplate = razor.getFullTemplateSync(viewPath, ViewBag, rootDir);
     return razor.render(fullTemplate, ViewBag);
 }
@@ -208,8 +229,9 @@ razor.renderFileSync = function(viewPath, ViewBag, rootDir) {
 //---------------------------------------
 //  for razor mvc framework
 //---------------------------------------
-razor._razor = function(viewContext, callback) {
-    try {
+razor._razor = function (viewContext, callback) {
+    try
+    {
         var template = razor.getCompleteTemplate(
             viewContext.viewPath,
             viewContext.ViewBag,
@@ -220,7 +242,8 @@ razor._razor = function(viewContext, callback) {
         //assign viewContext as razor in the view
         callback(null, res);
     }
-    catch (err) {
+    catch (err)
+    {
         callback(err);
     }
 };
@@ -228,12 +251,13 @@ razor._razor = function(viewContext, callback) {
 //------------------------------------------
 //  for express
 //------------------------------------------
-razor.express = function(app){
+razor.express = function (app) {
     //express中关联.razor
-    app.engine(".razor",razor._express);
+    app.engine(".razor", razor._express);
 };
-razor._express = function(viewPath, ViewBag, callback) {
-    if (typeof(ViewBag) === "function" && callback) {
+razor._express = function (viewPath, ViewBag, callback) {
+    if (typeof (ViewBag) === "function" && callback)
+    {
         //没有提供ViewBag,但是有callback
         callback = ViewBag;
         ViewBag = {};
