@@ -19,7 +19,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.9.0';
+    var version = '0.9.1';
     var update_date = '2014-7-20';
     "use strict";
 
@@ -397,7 +397,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             return str
                 .replace(/'/g, "\\'")
                 .replace(/"/g, '\\"')
-                .replace(/(\r?\n)+/g, "\\n");
+                .replace(/(\r?\n)/g, "\\n");
 
             //一个string包含"abcd\nabcd"
             //写到function也就是
