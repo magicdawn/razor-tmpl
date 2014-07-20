@@ -6,8 +6,10 @@
 ###razor-tmpl is a template engine for JavaScript based on kino.razor
     
 #1.Use in browsers
+```
+<script src="https://raw.githubusercontent.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
+```
 
-    <script src="....razor-tmpl.js"></script>
 1. Note that : razor-tmpl can be used with no dependency, but if `jQuery` exists ,there will be more convenient functions ...
 2. So if you used jquery in your site, 1.first load `jquery` 2.then this-razor-tmpl
 ###Without jquery , you can use the `razor` object , see [Doc/Basic.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/Basic.md)

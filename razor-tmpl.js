@@ -19,8 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.8.0';
-    var update_date = '2014-7-17';
+    var version = '0.9.0';
+    var update_date = '2014-7-20';
     "use strict";
 
     //-----------------------------------------
@@ -57,6 +57,9 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
     function Segment(content, eSegmentType) {
         this.Content = content;
         this.SegmentType = eSegmentType;
+        this.toString = function () {
+            return this.Content;
+        };
     }
 
     //StringBlockModel构造函数
@@ -67,14 +70,11 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
     }
 
     var Regexs = {
-        //\S 是 Symbol='@'
-        ForWhile: /^(for|while)\s*?\([\s\S]*?\)\s*?\{[\s\S]*?\}/,
-
-        If: /^if\s*\([\s\S]*?\)\s*\{/, //if+任意空白+( ... ) + 任意空白 + {
-        Else: /^\}\s*else/, //} 空白 else (if)? { }
-
         //@each(item in items){}
-        Each: /^each\s*?\([\s\S]+?\)\s*?\{[\s\S]*?\}/
+        Each: /^each\s*?\([\s\S]+?\)\s*?\{[\s\S]*?\}/,
+
+        //@...{}
+        Noraml: /[\S\s]*?\{[\S\s]*?\}/
     };
 
     var SegementProcesser = {
@@ -140,20 +140,16 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                                 break;
                             default: //可能有@if @for @while等
                                 var remain = model.template.substring(tokenIndex);
-                                if (Regexs.ForWhile.test(remain))
-                                {
-                                    //是for while
-                                    index = this.processForWhile(model, index, tokenIndex);
-                                }
-                                else if (Regexs.Each.test(remain))
+                                //each - for/while/if/else - 普通 @...{}
+                                if (Regexs.Each.test(remain))
                                 {
                                     //@each
                                     index = this.processEach(model, index, tokenIndex);
                                 }
-                                else if (Regexs.If.test(remain))
+                                else if (Regexs.Noraml.test(remain))
                                 {
-                                    //@if  (else)?
-                                    index = this.processIfElse(model, index, tokenIndex);
+                                    //@...{}
+                                    index = this.processNormal(model, index, tokenIndex);
                                 }
                                 break;
                         }
@@ -161,13 +157,9 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                 }
             }
             //for退出后,还有一段string
-            var content = model.template.substring(
-                model.processedIndex + 1, model.template.length
-            );
-            if (content)
-            {
-                model.segments.push(new Segment(content, ESegmentType.String));
-            }
+            //processString取 [processedIndex+1,atIndex)就是atIndex前面一个
+            //(template.length-1)+1 如length=10,0-9,9+1,包括9
+            this.processString(model, model.template.length);
         },
 
         /*
@@ -182,7 +174,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         //@之后无空白
         processString: function (model, atIndex) {
             var content = model.template.substring(model.processedIndex + 1, atIndex);
-            if (content)
+
+            if (content.trim())//不是空白
             {
                 model.segments.push(new Segment(content, ESegmentType.String));
             }
@@ -228,7 +221,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
                 content = this.decodeHtmlEntity(content);
                 model.segments.push(new Segment(content, ESegmentType.CodeBlock));
             }
-
             return model.processedIndex = secondBraceIndex;
         },
         processVariable: function (model, atIndex, firstBraceIndex) {
@@ -278,35 +270,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             }
             return model.processedIndex = secondBraceIndex;
         },
-        processForWhile: function (model, atIndex) {
-            //  @for() {   }
-            //atIndex -> '@'
-            //firstLetterIndex -> 'f'|'w'
-            var remain = model.template.substring(atIndex);
-            var firstIndex = remain.indexOf('{') + atIndex;
-            //在model.template里找匹配的'}'
-            var secondIndex = this.getSecondIndex(model.template, firstIndex);
 
-            var part1 = model.template.substring(atIndex + 1, firstIndex + 1); //for(xxx){
-            var part2 = model.template.substring(firstIndex + 1, secondIndex); //  <div>@(data)</div>
-            var part3 = '}'; //}
-
-            //1.part1
-            part1 = this.decodeHtmlEntity(part1);
-            model.segments.push(new Segment(part1, ESegmentType.CodeBlock));
-
-            //2.part2
-            //part2为StringBlock,意味着if while for 可以 嵌套
-            var subSegments = this.process(part2);
-            model.segments = model.segments.concat(subSegments);
-
-            //3.part3
-            model.segments.push(new Segment(part3, ESegmentType.CodeBlock));
-
-            //更新processedIndex和返回index
-            return model.processedIndex = secondIndex;
-        },
-        processEach: function (model, atIndex) {
+        processEach: function (model, atIndex, firstLetterIndex) {
             //@ each(item in items) {
             //  <div>@(item)</div>
             //}
@@ -331,7 +296,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             var items = loop.substring(inIndex + 2).trim();
 
             //循环体
-            var loopCode = "for(var $index = 0,length = {1}.length;$index < length;$index++) { var {0} = {1}[$index];".razorFormat(item, items);
+            var loopCode = "for(var $index = 0,$length = {1}.length;$index < $length;$index++) { var {0} = {1}[$index];".razorFormat(item, items);
             model.segments.push(new Segment(loopCode, ESegmentType.CodeBlock));
 
             //2.循环体
@@ -346,74 +311,36 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //更新processedIndex 返回index 该有的位置
             return model.processedIndex = secondBigIndex;
         },
-        processIfElse: function (model, atIndex) {
-            //@ if(condition){
-            //  <div>@(data)</div>
+        processNormal: function (model, atIndex, firstLetterIndex) {
+            //@...{     for/while/if/else/try/catch/switch/case
+            //  <div><>
             //}
-            //else if
-            //{}
-            //else
-            //{}
-
             //atIndex -> '@'
-            //firstLetterIndex -> 'i',if's first letter
-            var remain = model.template.substring(atIndex);//@  if(...) {...}
-            var firstIfBrace = remain.indexOf('{') + atIndex; //'{'
-            var secondIfBrace = this.getSecondIndex(model.template, firstIfBrace); //'}'
+            //firstLetterIndex -> @之后第一个非空白字符
 
-            var ifpart1 = model.template.substring(atIndex + 1, firstIfBrace + 1);
-            var ifpart2 = model.template.substring(firstIfBrace + 1, secondIfBrace);
-            var ifpart3 = '}';
+            var remain = model.template.substring(atIndex);
+            var firstIndex = remain.indexOf('{') + atIndex;
+            //在model.template里找匹配的'}'
+            var secondIndex = this.getSecondIndex(model.template, firstIndex);
 
-            //1.if(abc==abc){
-            ifpart1 = this.decodeHtmlEntity(ifpart1);
-            model.segments.push(new Segment(ifpart1, ESegmentType.CodeBlock));
-            //2. <div>@(data)</div>
-            var ifInnerSegments = this.process(ifpart2);
-            model.segments = model.segments.concat(ifInnerSegments);
-            //3.}
-            model.segments.push(new Segment(ifpart3, ESegmentType.CodeBlock));
-            model.processedIndex = secondIfBrace;
+            var part1 = model.template.substring(firstLetterIndex, firstIndex + 1); //for(xxx){
+            var part2 = model.template.substring(firstIndex + 1, secondIndex); //  <div>@(data)</div>
+            var part3 = '}'; //}
 
-            //判断有无else块
-            remain = model.template.substring(model.processedIndex);// "} else { ... }"
-            while (Regexs.Else.test(remain))
-            {
-                //存在else块
-                var firstElseBrace = remain.indexOf('{') + model.processedIndex; //'{'
-                var secondeElseBrace = this.getSecondIndex(model.template, firstElseBrace); //'}'
+            //1.part1
+            part1 = this.decodeHtmlEntity(part1);
+            model.segments.push(new Segment(part1, ESegmentType.CodeBlock));
 
-                //part 1 2 3
+            //2.part2
+            //part2为StringBlock,意味着if while for 可以 嵌套
+            var subSegments = this.process(part2);
+            model.segments = model.segments.concat(subSegments);
 
-                //}
-                //else {
-                //  xxx
-                //}
+            //3.part3
+            model.segments.push(new Segment(part3, ESegmentType.CodeBlock));
 
-                //elsepart1 =  else [xxx] {
-                var elsepart1 = model.template.substring(
-                    model.processedIndex + 1, //if的}后面
-                    firstElseBrace + 1);//包括else的左括号
-
-                var elsepart2 = model.template.substring(firstElseBrace + 1, secondeElseBrace);
-                var elsepart3 = "}"
-
-                //1.else{
-                model.segments.push(new Segment(elsepart1, ESegmentType.CodeBlock));
-                //2. <div>@data</div>
-                var elseInnerSegments = this.process(elsepart2);
-                model.segments = model.segments.concat(elseInnerSegments);
-                //3.}
-                model.segments.push(new Segment(elsepart3, ESegmentType.CodeBlock));
-
-                model.processedIndex = secondeElseBrace;
-
-                //更多的else if
-                remain = model.template.substring(model.processedIndex);
-            }
-
-            //@if{}
-            return model.processedIndex;
+            //更新processedIndex和返回index
+            return model.processedIndex = secondIndex;
         },
 
         getSecondIndex: function (template, firstIndex) {
@@ -479,9 +406,33 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //导致new function出错
         },
 
+        //去除if else之间的$result+="\n....";
+        //try catch 
+        //break之间
+        filter: function (segments) {
+            var result = [];
+            for (var index = 0, length = segments.length; index < length; index++)
+            {
+                var prev = segments[index - 1];
+                var cur = segments[index];
+
+                //一个空白的前面是codeblock
+                if (prev && prev.SegmentType === ESegmentType.CodeBlock && !cur.Content.trim())
+                {
+                    continue;
+                }
+                else
+                {
+                    result.push(cur);
+                }
+            }
+            return result;
+        },
+
         //var func=SegmentCompiler.compile(Segment[] segmnets)
         compile: function (segments) {
             var functionContent = [];
+            //segments = this.filter(segments);
             functionContent.push("var $result='';");
             //在code中可以使用 $result 变量增加输出内容
             try

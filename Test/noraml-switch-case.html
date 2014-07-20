@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script src="../razor-tmpl.js"></script>
+    <script>
+        $(function () {
+            $(template).renderToParent({
+                persons: [
+                    { name: 'zhangsan', age: 18 },
+                    { name: 'lisi', age: 19 }
+                ]
+            });
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <script type="text/template" id="template">
+            @each(p in ViewBag.persons){
+                <div>
+                @switch(p.name){
+                    @       case 'zhangsan' : {
+                        他是张三
+                        @{ break ;}
+                    }
+
+                    @   case 'lisi' : {
+                        他是李四
+                        @{ break; }
+                    }
+                    @            default :
+                    {
+                        @{ 
+                            break;
+                         }
+                    }
+                }
+                </div>
+            }
+        </script>
+    </div>
+</body>
+</html>

@@ -17,13 +17,14 @@
         <div>
             <div razor-template razor-for="var i =0;i<10;i++" id="test">
                 @{
-                    var getRandomInt = function(){
-                        return Math.floor(Math.random()*255);
-                    };
-                    var getRandomColor = function(){
-                        return 'rgb({0},{1},{2})'.razorFormat(getRandomInt(),getRandomInt(),getRandomInt());
-                    };
+                var getRandomInt = function(){
+                return Math.floor(Math.random()*255);
+                };
+                var getRandomColor = function(){
+                return 'rgb({0},{1},{2})'.razorFormat(getRandomInt(),getRandomInt(),getRandomInt());
+                };
                 }
+
                 @* 本来是style="width:80%" 把这个80用@(随机数)代替就是了 *@
                 <div style="background-color:@(getRandomColor());color:white;width:@(Math.random()*100)%;">
                     这是第 @(i) 个

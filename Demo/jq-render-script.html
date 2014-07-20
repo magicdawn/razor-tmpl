@@ -14,9 +14,15 @@
 <body>
     <script type="text/template" id="test">
         @{
-        var data=10;
+            var data=10;
         }
+
+        @function test(i){
+            <div>@(i)</div>
+        }
+
         <div>@(data)</div>
+        @{ test(10); }
     </script>
 </body>
 </html>

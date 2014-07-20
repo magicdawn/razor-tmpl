@@ -1,29 +1,28 @@
 #Template Rules & Guides
 ###Hava an eye at the template below
-
-	<script type="text/template">
-		@{
-			//代码块
-			var hello = "hello world";			
-			var varBool=true;
-            var i =10;//while循环要用
-		}
+```
+<script type="text/template">
+	@{
+		//code block
+		var hello = "hello world";			
+		var varBool=true;
+		var i =10;//prepare for the while loop
+	}
+	<div>@(hello)</div>
+	@if(varBool)
+	{
 		<div>@(hello)</div>
-		@if(varBool)
-		{
-			<div>@(hello)</div>
-            //对于变量来@(变量)
-            //for while if 等都可以支持	
+		//use @(variable or expression) to evaluate
+	}
+	@while(i>0)
+	{
+		@{
+			i--;
 		}
-        @while(i>0)
-        {
-            @{
-                i--;
-            }
-            <div>@(i)</div>
-        }
-	</script>
-
+		<div>@(i)</div>
+	}
+</script>
+```
 #Note
 We hava 3 mode
 1. CodeBlock : @{ // code block }
