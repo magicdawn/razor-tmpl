@@ -19,8 +19,8 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
 };
 
 (function (global) {
-    var version = '0.9.1';
-    var update_date = '2014-7-20';
+    var version = '0.9.5';
+    var update_date = '2014-7-27';
     "use strict";
 
     //-----------------------------------------
@@ -175,7 +175,7 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
         processString: function (model, atIndex) {
             var content = model.template.substring(model.processedIndex + 1, atIndex);
 
-            if (content.trim())//不是空白
+            if (content.trim())//不是全空白
             {
                 model.segments.push(new Segment(content, ESegmentType.String));
             }
@@ -404,29 +404,6 @@ String.prototype.razorFormat = function (obj0, obj1, obj2) {
             //$result += "abcd
             // abcd";
             //导致new function出错
-        },
-
-        //去除if else之间的$result+="\n....";
-        //try catch 
-        //break之间
-        filter: function (segments) {
-            var result = [];
-            for (var index = 0, length = segments.length; index < length; index++)
-            {
-                var prev = segments[index - 1];
-                var cur = segments[index];
-
-                //一个空白的前面是codeblock
-                if (prev && prev.SegmentType === ESegmentType.CodeBlock && !cur.Content.trim())
-                {
-                    continue;
-                }
-                else
-                {
-                    result.push(cur);
-                }
-            }
-            return result;
         },
 
         //var func=SegmentCompiler.compile(Segment[] segmnets)

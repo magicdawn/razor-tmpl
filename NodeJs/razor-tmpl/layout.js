@@ -7,7 +7,7 @@ module.exports.getLayout = function (template) {
     //通过正则测出
     var arr = /\blayout\s*?=\s*?['"]([\s\S]+?)['"]/.exec(template);
     if (arr && arr[1]) return arr[1];
-    return "null";
+    return null;
 };
 
 //将设置了layout的东西填入layout

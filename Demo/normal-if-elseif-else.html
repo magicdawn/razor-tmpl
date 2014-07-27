@@ -22,14 +22,14 @@
         <script type="text/template" id="test">
             @each(person in ViewBag.list){
                 <div data-name="@(person.name)">
-                    @ if(person.age > 30){
+                    @if(person.age > 30){
                         这么大了啊~
                     }
-                    @ else if(person.age > 18)
+                    @else if(person.age > 18)
                     {
                         哎哟,不错哟,成年了
                     }
-                    @ else
+                    @else
                     {
                         小屁孩,哈哈
                     }
