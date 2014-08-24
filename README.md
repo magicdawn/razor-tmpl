@@ -10,7 +10,7 @@ razor-tmpl is a template engine for JavaScript based on kino.razor
 #install
 for browser
 ```html
-<script src="https://raw.githubusercontent.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
+<script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
 ```
 for nodejs
 ```shell
