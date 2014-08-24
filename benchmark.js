@@ -1,8 +1,34 @@
 ﻿var razor = require("./razor-tmpl.js");
+razor.debuging = true;
 
-var template_escape = "<div><h1 class='header'>@(- ViewBag.header)</h1><h2 class='header2'>@(- ViewBag.header2)</h2><h3 class='header3'>@(- ViewBag.header3)</h3><h4 class='header4'>@(- ViewBag.header4)</h4><h5 class='header5'>@(- ViewBag.header5)</h5><h6 class='header6'>@(- ViewBag.header6)</h6><ul class='list'>@for (var i = 0, l = ViewBag.list.length; i < l; i++) { <li class='item'>@(- ViewBag.list[i])</li>}</ul></div>";
+var template_escape = "\n\
+<div>\n\
+    <h1 class='header'>@(=- header)</h1>\n\
+    <h2 class='header2'>@(-= header2)</h2>\n\
+    <h3 class='header3'>@(-= header3)</h3>\n\
+    <h4 class='header4'>@(=-    header4)</h4>\n\
+    <h5 class='header5'>@(- ViewBag.header5)</h5>\n\
+    <h6 class='header6'>@(- ViewBag.header6)</h6>\n\
+    <ul class='list'>\n\
+        @ for (var i = 0, l = ViewBag.list.length; i < l; i++) { \n\
+            <li class='item'>@(- ViewBag.list[i])</li>\n\
+        }\n\
+    </ul>\n\
+</div>";
 
-var template = "<div><h1 class='header'>@(ViewBag.header)</h1><h2 class='header2'>@(ViewBag.header2)</h2><h3 class='header3'>@(ViewBag.header3)</h3><h4 class='header4'>@(ViewBag.header4)</h4><h5 class='header5'>@(ViewBag.header5)</h5><h6 class='header6'>@(ViewBag.header6)</h6><ul class='list'>@for (var i = 0, l = ViewBag.list.length; i < l; i++) { <li class='item'>@(ViewBag.list[i])</li>}</ul></div>";
+var template = "\n\
+<div>\n\
+    <h1 class='header'>@(=header)</h1>\n\
+    <h2 class='header2'>@(= header2)</h2>\n\
+    <h3 class='header3'>@(ViewBag.header3)</h3>\n\
+    <h4 class='header4'>@(ViewBag.header4)</h4>\n\
+    <h5 class='header5'>@(ViewBag.header5)</h5>\n\
+    <h6 class='header6'>@(ViewBag.header6)</h6>\n\
+    <ul class='list'>@for (var i = 0, l = ViewBag.list.length; i < l; i++) {\n\
+        <li class='item'>@(= list[i])</li>\n\
+    }\n\
+    </ul>\n\
+</div>";
 
 //make the template bigger
 //for (var i = 0 ; i < 3 ; i++)
@@ -74,7 +100,7 @@ console.log("---------------------------------");
 
 
 /*
-    Test Just Like Other Template Engines :
+    Other Template Engines :
     http://cnodejs.org/topic/4f16442ccae1f4aa27001109
     https://github.com/fengmk2/fengmk2.github.com/tree/master/blog/2011/04/js-template-benchmarks
 
@@ -85,8 +111,8 @@ console.log("---------------------------------");
     }
 
     None Escape ...
-    57 ms
+    125
 
     Escape
-    1229 ms
+    2005
 */

@@ -1,4 +1,61 @@
-The Template Rule
+#nodejs advance
+test.js
+```js
+var razor = require('../../');
+razor.renderFileSync('index.razor');
+```
+
+data.json
+```json
+{
+    "title" : "this is a title"
+}
+```
+
+index.razor
+```html
+@{
+    var data = require('./data.json'); //require support
+    require('colors');//third party module support,also native module
+    console.log("i required the %s file,and title is : %s","data.json".rainbow,data.title.yellow);
+}
+
+<!doctype html>
+<html>
+    <head>
+        <title>@(data.title)</title>
+        <!-- __filename support -->
+        @( __dirname )
+        <!-- __filename support -->
+        @( __filename )
+    </head>
+</html>
+
+@{ console.log($result.cyan); }
+```
+
+that's it !
+```shell
+i required the data.json file,and title is : this is a title                                       
+                                                                                                   
+                                                                                                   
+<!doctype html>                                                                                    
+<html>                                                                                             
+    <head>                                                                                         
+        <title>this is a title</title>                                                             
+        <!-- __filename support -->                                                                
+        D:\xxx\razor-tmpl\NodeJs\razor-tmpl\test\高级测试                 
+        <!-- __filename support -->                                                                
+        D:\xxx\razor-tmpl\NodeJs\razor-tmpl\test\高级测试\index.razor     
+    </head>                                                                                        
+</html>                                                                                                                                            
+```
+these files can be found in the `node_project_root/test/高级测试/`
+
+
+
+
+#advance Template Rule
 ```
 @     for   (  abc==    abc)
 {

@@ -1,10 +1,13 @@
 {
   "name": "razor-tmpl",
-  "version": "0.9.5",
+  "version": "1.0.0",
   "description": "Razor Style Template Engine",
   "main": "index.js",
+  "bin": {
+    "razor" : "./bin/razor.js"
+  },
   "scripts": {
-    "test": "mocha"
+    "test": "echo test by hand"
   },
   "repository": {
     "type": "git",
@@ -15,8 +18,5 @@
     "template"
   ],
   "author": "magicdawn",
-  "license": "ISC",
-  "dependencies": {
-    "razor-string": "^0.1.2"
-  }
+  "license": "ISC"
 }

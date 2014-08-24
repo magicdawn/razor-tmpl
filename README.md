@@ -1,66 +1,161 @@
-###中文文档请看[code.csdn.net/magicdawn/razor-tmpl-doc](https://code.csdn.net/magicdawn/razor-tmpl-doc)
+<script src="jquery-1.7.1.min.js"></script>
+<script src="razor-tmpl.js"></script>
+
+###中文 [CSDN](https://code.csdn.net/magicdawn/razor-tmpl-doc)
 
 #Thanks To [kino.razor](https://github.com/kinogam/kino.razor)
+razor-tmpl is a template engine for JavaScript based on kino.razor
 
-#razor-tmpl
-###razor-tmpl is a template engine for JavaScript based on kino.razor
-    
-#1.Use in browsers
-```
+
+#install
+for browser
+```html
 <script src="https://raw.githubusercontent.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
 ```
+for nodejs
+```shell
+$ npm install razor-tmpl
+```
 
-1. Note that : razor-tmpl can be used with no dependency, but if `jQuery` exists ,there will be more convenient functions ...
-2. So if you used jquery in your site, 1.first load `jquery` 2.then this-razor-tmpl
-###Without jquery , you can use the `razor` object , see [Doc/Basic.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/Basic.md)
-###With jquery,convenient ways,see [Doc/jquery.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/jQuery.md)
+#get started
+I add `_doc` property for every function,as python `__doc__`does,you can use it in console,like
+```shell
+> razor = require('razor-tmpl'); // or in browser,no need to require
+> console.log(razor.render._doc) // will show the basic usage of razor.render
+```
 
-#3.Use In NodeJs
-`npm install razor-tmpl` see [npm module page](https://npmjs.org/package/razor-tmpl)
-
-#4.Template Syntax
-    <script type="text/template">
-		@{
-			//code block
-			var hello = "hello world";			
-			var varBool=true;
-            var num = 10;
-            var persons = [
+##a case in browser
+```html
+<script type="text/template" id="test">
+	<!-- put the template in a script tag with type="text/template" -->
+    <div>
+    	@each(p in persons)
+        {
+        	<div data-age="@(p.age)">
+                name : @(p.name) <br/>
+                age : @(p.age)<br />
+                ---<br />
+            </div>
+        }
+        
+        <!--
+         and persons looks like
+         	persons : [
                 { name : 'zhangsan' ,age : 18 },
                 { name : 'lisi' , age : 19 }
-            ];
-		}
-        
-        @* razor comment,contents below is html content *@
-		<div>@(hello)</div>
+        	];
+        -->
+    </div>
+</script>
+```
+then use
+```js
+razor.render(test.innerHTML,{
+	persons : [
+        { name : 'zhangsan' ,age : 18 },
+        { name : 'lisi' , age : 19 }
+    ];
+})
+```
+this will get
+```html
+<div>
+	<div data-age="18">
+    	name : zhangsan <br/>
+        age : 18<br />
+        ---<br />
+    </div>
+    <div data-age="19">
+    	name : lisi <br/>
+        age : 19<br />
+        ---<br />
+    </div>    
+</div>
+```
+*use `$index`* to refer the index in the `each` loop,it's implemented with
+```js
+for(var $index = 0,$length=persons.length;$index<$length;$index++){
+	var p = persons[$index];
+```
+that's each help you done,and you can use for `@for(){ ... }` as you like.
+and template can also specified in the view,see `doc/template.md`
 
-		@if(varBool)
-		{
-            @* if conditional statement *@
-			<div>@(hello)</div>
-            to evaluate a variable or expression use @(variable)
-            use the @(Viewbag.blabla) to reference 
-            the Viewbag passed by razor.render(template,ViewBag)
-		}
-        
-        @* for while if no problem *@
-        @while(num)
-        {
-            @{ num-- ;}
-            <div>@(num)</div>
-        }
+##a case in nodejs & express
 
-        @* use each expression to iterate *@
-        @* no meed to use "var p" to declare *@
-        @each(p in persons)
-        {
-            name : @(p.name) <br/>
-            age : @(p.age)</br>
-            ---</br>
-        }
-	</script>
-see more [Doc/Template.md](https://github.com/magicdawn/razor-tmpl/blob/master/Doc/Template.md)
+views\index.razor
+```html
+<div>
+    @(ViewBag.body)
+</div>
+```
+views\layout\layout.razor
+```html
+<!doctype html>
+<html>
+    <head>
+        <title>
+            @(ViewBag.title)
+        </title>
+    </head>
+    <body>
+        <div class="container">
+            @renderBody()
+        </div>
+    </body>
+</html>
+```
 
-#4.render speed
+use
+```js
+razor.renderFileSync('index.razor',{
+    title: "this is title",
+    body: 'this is body',
+    layout: 'layout/layout.razor',
+}
+```
+get result like
+```html
+<!doctype html>
+<html>
+    <head>
+        <title>
+            this is title
+        </title>
+    </head>
+    <body>
+        <div class="container">
+            <div>
+    this is body
+</div>
+        </div>
+    </body>
+</html>
+```
+so that's it.
+type `console.log(razor._express._doc)`,you got this
+```
+> console.log(razor._express._doc)                        
+                                                          
+    interface for Express Framework:                      
+                                                          
+    var app = express();                                  
+    ...                                                   
+    app.engine('.razor',require('razor-tmpl')._express);
+                                                          
+undefined                                                 
+>                                                         
+```
+that's the usage,`app.engine('.razor',require('razor-tmpl')._express);`
+
+
+
+#features
+- razor way templating,see `doc/template.md`
+- it's all customed,use symbol to change '@',use model to change 'ViewBag'
+- support if/else if/else if/......else/swith case , even no one may use that
+- with jquery functions, render/renderToParent,template canbe written not only in a SCRIPT tag,and renderToParent is extreme convinent. see `doc/jquery.md`
+- for node,i found a way that makes the template to access file system,database... possible,just call `razor.renderFile[Sync]`,the view can require data,no need to pass through,see `doc/advance.md`
+
+#speed
 Comparsion : http://cnodejs.org/topic/4f16442ccae1f4aa27001109
 Result : [benchmark.js](https://github.com/magicdawn/razor-tmpl/blob/master/benchmark.js)

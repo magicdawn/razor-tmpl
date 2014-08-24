@@ -1,5 +1,92 @@
-#Template Rules & Guides
-###Hava an eye at the template below
+#Template Syntax Rules & Guides
+## use @{ } as code block
+## use @( ) as output
+####for variable or expression
+and @(- name) is to escape it, `<div>` => `&lt;div&gt;`
+and @(= name) will become @(ViewBag.name)
+
+##control flow
+###for
+@for(loop){ ... }
+inside the brace`{}`,same to outside,code must in a `@{...}`
+that's
+
+```js
+@for(var i in {name:'z',age : 18}){
+	@{  name += name; //name='zz' }
+}
+```
+
+###each
+each(p in persons) no need to use var,it's use $index & $length to loop
+
+
+###if else
+```js
+@if(){ ... }
+@else if() { ... }
+...
+@else { ... }
+```
+as much as you like
+
+###and switch/case
+it's  rere ,normaly just skip this,but if you wanna know,i will show you:
+```js
+@switch(p.name){
+	@case 'zhangsan' : {
+		he is zhangsan
+		@{ break ;}
+	}
+
+	@case 'lisi' : {
+		he is lisi
+		@{ break; }
+	}
+
+	@default :
+	{
+		not zgangsan & not lisi
+		@{ break; }
+	}
+}
+```
+generate code like
+```js
+switch(p.name){
+	case 'zhangsan' : {
+		$result += 'zhangsan';
+		break;
+	}
+
+	case 'lisi' : {
+		$result += 'lisi';
+		break;
+	}
+
+	default :
+	{
+		$result += "not zgangsan & not lisi";
+		break;
+	}
+}
+```
+####also,try catch is supported
+```js
+@try{
+	
+}
+@catch(e){
+
+}
+@finally{
+	
+}
+```
+
+
+
+##Hava an eye on the template below
 ```
 <script type="text/template">
 	@{
@@ -23,39 +110,10 @@
 	}
 </script>
 ```
-#Note
+##Note
 We hava 3 mode
-1. CodeBlock : @{ // code block }
-2. Variable : @(data)
-3. String : <div>
+1. CodeBlock : `@{ // code block }`
+2. Variable : `@(data)`
+3. String : `<div>`
 
-###StringBlock is a block of string,that contains the previous 3 mode
-In codeBlock , you can only write code.
-In StringBlock , you need to use @(var or expression) to evaluate it
-In the inner loop , it's a smaller string block,and can contains any mode
-
-#Details
-##1.CodeBlock
-    @
-    {
-        //code block
-        //variables , expressions
-    }
-
-##2.give out the value of variable|expression
-    @(variable)
-
-razor.render(template,ViewBag) , ViewBag can be used as `@(ViewBag.list[i].age)`
-
-##3.Control Loop
-    @if(abc == xxx)
-    {
-        
-    }
-    @for(var i=0;i<length;i++)
-    {
-        <div>@(i)</div>
-    }
-
-##4.normal string
-    <div>abcd</div>
+and a StringBlock can contains this 3 modes,the whole template is a StringBlock.

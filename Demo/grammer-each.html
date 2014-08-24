@@ -5,6 +5,7 @@
     <title></title>
     <script src="../razor-tmpl.js"></script>
     <script>
+        razor.debuging = true;
         window.onload = function () {
             var res = razor.render(test.innerHTML, {
                 persons: [
@@ -18,11 +19,15 @@
 </head>
 <body>
     <script type="text/template" id="test">
-        @ each (p in ViewBag.persons)
-        {
-            <div>@(p.name)</div>
-            <div>@(p.age)</div>
-        }
+        <ul>
+            @ each (p in ViewBag.persons)
+            {
+                <li>
+                    <div>@(p.name)</div>
+                    <div>@(p.age)</div>
+                </li>
+            }
+        </ul>
     </script>
 </body>
 </html>

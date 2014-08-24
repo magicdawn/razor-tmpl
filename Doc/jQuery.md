@@ -1,4 +1,4 @@
-#First if jquery exists and $ == jQuery
+#First if jquery exists
 1. `$(selector).render(ViewBag)`
 2. `$(selector).renderToParent(ViewBag)`
 

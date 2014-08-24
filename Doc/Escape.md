@@ -4,11 +4,14 @@ use `@(- variable)` to escape
 e.g.
 
     @{
-        var data = "<div>All content display,include the div wrapper</div>"
+        var data = "<div>content</div>"
     }
-    @(- data) @* or @(-data) the space is optional,and this is a razor-comment *@
+    @(- data) @* => &lt;div&gt;content&lt;/&gt;  *@
+	@* or @(-data) the space is optional*@
 
-that will display the whole result,include the wrapper div
+as you see , `@(- data)` results `&lt;div&gt;content&lt;/&gt;`
+and escape can be used with `@(=)` that goes like `@(=- name)`
+
 
 ##2.escape in the template
 use `@@` when you want to express a '@'

@@ -16,11 +16,13 @@
         <script type="text/template" id="template">
             @try
             {
-            <div>@(a)</div>
+                <div>@(a)</div>
             }
             @catch(e){
-            <div>@(e)</div>
-            @{ console.log(e); }
+                <div>@(e)</div>
+                @{ 
+                    console.log(e); 
+                }
             }
         </script>
     </div>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -13,6 +13,9 @@
                     { name: 'lisi', age: 19 }
                 ]
             });
+            
+            var adv = razor._advance;
+            console.log(adv.toCode(adv.toSegments(template.innerHTML)));
         });
     </script>
 </head>
@@ -22,20 +25,20 @@
             @each(p in ViewBag.persons){
                 <div>
                 @switch(p.name){
-                    @       case 'zhangsan' : {
+                    @case 'zhangsan' : {
                         他是张三
                         @{ break ;}
                     }
 
-                    @   case 'lisi' : {
+                    @case 'lisi' : {
                         他是李四
                         @{ break; }
                     }
-                    @            default :
+
+                    @default :
                     {
-                        @{ 
-                            break;
-                         }
+                        不是张三 & 不是李四
+                        @{ break; }
                     }
                 }
                 </div>
