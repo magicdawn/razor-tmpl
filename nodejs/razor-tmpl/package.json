@@ -1,6 +1,6 @@
 {
   "name": "razor-tmpl",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Razor Style Template Engine",
   "main": "index.js",
   "bin": {
