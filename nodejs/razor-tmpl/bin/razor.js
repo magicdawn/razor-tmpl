@@ -72,7 +72,7 @@ function parseArgv() {
     _args.forEach(function(arg) {
         if (arg.indexOf('=') > -1) {
             args.push(arg.split('=')[0]);
-            arg.push(arg.split('=')[1]);
+            args.push(arg.split('=')[1]);
             return
         }
         args.push(arg);
