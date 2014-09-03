@@ -1,0 +1,15 @@
+1.run
+razor a,b,c
+不生成任何数据
+
+2.run
+razor a,b,c htm
+期望生成 a.htm b.htm c.htm
+
+3.run
+razor a,b,c output/
+期望生成 output/a.html output/b.html output/c.html
+
+4.run
+razor a,b,c output/%s.htm
+期望生成 output/a.htm output/b.htm output/c.htm
