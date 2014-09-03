@@ -5,6 +5,7 @@ var fs = require('fs');
 var razor = require('../');
 var util = require('util');
 
+i18n.lang = 'en'; //默认english
 var cn = ~ (new Date()).toLocaleString().indexOf("中国标准时间");
 if (cn) i18n.lang = "cn";
 
@@ -20,7 +21,7 @@ if (output) {
     if (output.slice(-1) == '/' || output.slice(-1) == '\\') {
         dest = output + "%s.html";
     }
-    else if (output.indexOf('.') == -1) { //razor a,b,c css -> a.css,b.css,c.css
+    else if (output.indexOf('.') === -1) { //razor a,b,c css -> a.css,b.css,c.css
         dest = "%s." + output;
     }
     else {
@@ -37,7 +38,10 @@ paths.forEach(function(p) {
     var cur_dest = '';
 
     if (dest) {
-        cur_dest = util.format(dest, pathFn.basename(p, pathFn.extname(p)))
+        if (dest.indexOf("%s") > 0)
+            cur_dest = util.format(dest, pathFn.basename(p, pathFn.extname(p)));
+        else
+            cur_dest = dest;
     }
     else {
         //尝试从模板中读取 dest = xxx
@@ -47,11 +51,11 @@ paths.forEach(function(p) {
         var arr = tmpl.match(/var\s*?dest\s*?=\s*?['"]([\s\S]+)['"]/); // match group index input
 
         if (arr && arr[1]) {
-            cur_dest = pathFn.join(pathFn.dirname(p),arr[1]);
+            cur_dest = pathFn.join(pathFn.dirname(p), arr[1]);
         };
     }
 
-    if(cur_dest){
+    if (cur_dest) {
         fs.writeFileSync(cur_dest, result);
         console.log(i18n("success"), cur_dest);
     }

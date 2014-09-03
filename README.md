@@ -24,6 +24,11 @@ I add `_doc` property for every function,as python `__doc__`does,you can use it 
 > console.log(razor.render._doc) // will show the basic usage of razor.render
 ```
 
+And Sublime Text 3 support,just use `Package Control` search `razor-tmpl`
+![](https://raw.githubusercontent.com/magicdawn/razor-tmpl.sublime-package/master/razor.tmLanguage.screenshot.jpg)
+
+
+
 ##a case in browser
 ```html
 <script type="text/template" id="test">

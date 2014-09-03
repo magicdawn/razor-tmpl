@@ -103,20 +103,42 @@ Because of this,you got a command line tool `razor`,use
 `npm i razor-tmpl -g` , then type `razor` for help
 
 ```
-C:\Users\Administrator>razor                                  
-                                                              
-    razor file [option]                                       
-    option 选项 :                                               
-                                                              
-        -n|-no|-no-output 不要输出                                
-        -o|-output        输出位置                                
-                                                              
-    example :                                                 
-        razor xxx.razor                 -> xxx.html           
-        razor xxx.razor -o xxx.abc      -> xxx.abc            
-        razor xxx.razor -o output_dir/  -> output_dir/xxx.html
-        razor xxx.razor -no-output      -> no output          
-                                                              
+C:\Users\Administrator>razor
+
+    razor file [output]
+
+    file   : split with ',' , and razor ext can be ignored , such as a,b,c
+    output : to set the output,default is no-output
+
+    example :
+        razor xxx.razor                     -> no-output
+        razor xxx.razor xxx.abc             -> xxx.abc
+        razor xxx.razor abc                 -> xxx.abc
+        razor a,b,c css                     -> a.css,b.css,c.css
+        razor xxx.razor output_dir/         -> output_dir/xxx.html
+        razor xxx.razor output_dir/%s.css   -> output_dir/xxx.css
+
+    output can also be specified with @{ var dest = 'dest_path'; }
+```
+
+中文环境的输出
+```
+C:\Users\Administrator>razor
+
+    razor file [output]
+
+    file    表示模版文件,使用,分隔,可以省略razor后缀,如a,b,c
+    output  表示输出内容,默认无输出
+
+    示例 :
+        razor xxx.razor                     -> 无输出
+        razor xxx.razor xxx.abc             -> xxx.abc
+        razor xxx.razor abc                 -> xxx.abc
+        razor a,b,c css                     -> a.css,b.css,c.css
+        razor xxx.razor output_dir/         -> output_dir/xxx.html
+        razor xxx.razor output_dir/%s.css   -> output_dir/xxx.css
+
+    output 还可以在模板里用 @{ var dest = 'dest_path'; } 指定
 ```
 
 see `test/bin工具`
