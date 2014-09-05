@@ -7,27 +7,40 @@
 razor-tmpl is a template engine for JavaScript based on kino.razor
 
 
-#install
+#Install
 for browser
 ```html
 <script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
 ```
 for nodejs
 ```shell
-$ npm install razor-tmpl
+$ npm i razor-tmpl
 ```
 
-#get started
+#Tips
+1
+---
 I add `_doc` property for every function,as python `__doc__`does,you can use it in console,like
 ```shell
 > razor = require('razor-tmpl'); // or in browser,no need to require
 > console.log(razor.render._doc) // will show the basic usage of razor.render
 ```
 
-And Sublime Text 3 support,just use `Package Control` search `razor-tmpl`
+2
+---
+gulp plugin available : [gulp-razor-tmpl](https://github.com/magicdawn/gulp-razor-tmpl)
+
+
+3
+---
+Sublime Text 3 Editor support,use `Package Control` search `razor-tmpl`
+
 ![](https://raw.githubusercontent.com/magicdawn/razor-tmpl.sublime-package/master/razor.tmLanguage.screenshot.jpg)
 
 
+
+
+#Get Started
 
 ##a case in browser
 ```html
@@ -154,13 +167,13 @@ that's the usage,`app.engine('.razor',require('razor-tmpl')._express);`
 
 
 
-#features
+#Features
 - razor way templating,see `doc/template.md`
 - it's all customed,use symbol to change '@',use model to change 'ViewBag'
 - support if/else if/else if/......else/swith case , even no one may use that
 - with jquery functions, render/renderToParent,template canbe written not only in a SCRIPT tag,and renderToParent is extreme convinent. see `doc/jquery.md`
 - for node,i found a way that makes the template to access file system,database... possible,just call `razor.renderFile[Sync]`,the view can require data,no need to pass through,see `doc/advance.md`
 
-#speed
+#Speed
 Comparsion : http://cnodejs.org/topic/4f16442ccae1f4aa27001109
 Result : [benchmark.js](https://github.com/magicdawn/razor-tmpl/blob/master/benchmark.js)
