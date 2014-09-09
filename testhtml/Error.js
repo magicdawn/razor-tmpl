@@ -1,18 +1,33 @@
-﻿
-
-var $result='';
-for(var i =0;i<10;i++){
-    var getRandomColor = function(){
-    return 'rgb({0},{1},{2})'.format(Math.random()*255,Math.random()*255,Math.random()*255);
+﻿var $result = '';
+$result += '\n            ';
+for (var $index = 0, $length = ViewBag.persons.length; $index < $length; $index++) {
+    var p = ViewBag.persons[$index];
+    $result += '\n                <div>\n                ';
+    switch (p.name) {
+        $result += '\n                    ';
+        case 'zhangsan':
+            {
+                $result += '\n                        他是张三\n                        ';
+                break;
+                $result += '\n                    ';
+            }
+            $result += '\n\n                    ';
+        case 'lisi':
+            {
+                $result += '\n                        他是李四\n                        ';
+                break;
+                $result += '\n                    ';
+            }
+            $result += '\n\n                    ';
+        default:
+            {
+                $result += '\n                        不是张三 & 不是李四\n                        ';
+                break;
+                $result += '\n                    ';
+            }
+            $result += '\n                ';
     }
-
-    $result+='<div style=\"background-color:';
-    
-    $result+=getRandomColor();
-    $result+=';\">这是第';
-    
-    $result+=i;
-    $result+='个</div>';
+    $result += '\n                </div>\n            ';
 }
-
+$result += '\n        ';
 return $result;

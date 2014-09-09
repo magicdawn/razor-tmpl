@@ -1,8 +1,8 @@
 ﻿/*
  * Created BY Magicdawn;
  */
-String.prototype.razorReplaceAll = function(oldValue, replaceValue) {
-    return this.replace(new RegExp(oldValue, 'g'), replaceValue);
+String.prototype.razorReplaceAll = function(old, replaceValue) {
+    return this.replace(new RegExp(old, 'g'), replaceValue);
 };
 String.prototype.razorReplaceAll._doc = 'str.razorReplaceAll(old,new),use new RegExp(old,g)';
 
@@ -10,18 +10,16 @@ String.prototype.razorFormat = function(obj0, obj1, obj2) {
     var result = this;
     for (var i in arguments) {
         //将{0} -> obj[0]
-        //new RegExp("\\{ 0 \\\}",g)
         result = result.razorReplaceAll("\\{" + i + "\\}", arguments[i].toString());
     }
     return result;
 };
-String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj count limit';
+String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2) , no obj count limit';
 
 (function(_export) {
-    //Object.prototype._doc = "_doc property display usage"
     var razor = {
-        version: '1.0.0',
-        update_date: '2014-8-17',
+        version: '1.1.0',
+        update_date: '2014-09-09',
         debuging: false
     };
 
@@ -36,45 +34,6 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
         _export.razor = razor;
     }
 
-    //简化模板
-
-    function simpleMinfy(str, isJsCode) {
-        //对模板简单的简化
-        if (isJsCode) {
-            //对codeBlock使用isJsCode = true
-            str = str.replace(/\/\/.*$/gm, '') //单行注释
-            .replace(/\/\*[\s\S]*\*\//g, ''); //多行注释,.号任意字符不包括\n,用[\s\S]表示任意字符
-        }
-        //普通的去除空行
-        return str.replace(/@\*[\s\S]*?\*@]/g, '') //去除模板注释
-        .replace(/\n+/g, '\n') //多个空行转为一个
-        .replace(/ +/g, ' ') //对个空格转为一个
-        .replace(/<!--[\s\S]*?-->/g, '')
-            .trim();
-    };
-
-    function Segment(content, eSegmentType) {
-        this.Content = content;
-        this.SegmentType = eSegmentType;
-        this.toString = function() {
-            return this.Content;
-        };
-    }
-    Segment._doc = "Segment constructor";
-
-    function StringBlockModel(template) {
-        this.template = template;
-        this.processedIndex = -1;
-        this.segments = [];
-    }
-    StringBlockModel._doc = "StringBlockModel constructor";
-
-    //一个节点的类型
-    var ESegmentType = {
-        CodeBlock: 0,
-        Variable: 1,
-        String: 2
-    };
     var Regexs = {
         //@each(item in items){}
         Each: /^each\s*?\([\s\S]+?\)\s*?\{[\s\S]*?\}/,
@@ -83,39 +42,49 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
         Noraml: /[\S\s]*?\{[\S\s]*?\}/
     };
 
-    var SegmentProcesser = {
-        symbol: '@',
+    var symbol = '@';
+    var ViewBag = 'ViewBag';
 
-        //Segment[] result = SegmentProcesser.process(String template);
-        process: function(template) {
-            var model = new StringBlockModel(template);
-            SegmentProcesser.processStringBlock(model);
-            return model.segments;
+    function Parser(input) {
+        this.input = input;
+        this.consumed = -1;
+        this.tokens = [];
+    }
+
+    Parser.Tokens = {
+        "TK_VAR": "TK_VAR",
+        "TK_CODE_BLOCK": "TK_CODE_BLOCK",
+        "TK_STRING": "TK_STRING"
+    };
+
+    Parser.prototype = {
+        tok: function(type, content) {
+            this.tokens.push({
+                type: type,
+                content: content
+            });
         },
 
-        //StringBlock,主循环
-        processStringBlock: function(model) {
-            var template = model.template;
-            for (var index = 0, length = template.length; index < length; index++) {
-                var current = template[index];
+        parse: function() {
+            for (var index = 0; index < this.input.length; index++) {
+                var cur = this.input[index];
                 var next = '';
-                if (current == this.symbol) //当前为'@'
+
+                if (cur == symbol) //'@'
                 {
-                    //1. @之前的string
-                    this.processString(model, index);
+                    //handle string before handle symbol @xxx
+                    this.handleString(index);
 
                     //2. @之后的判断,不允许空白
-                    //@@ escape
-                    //@* *@注释
-                    next = template[index + 1];
+                    next = this.input[index + 1];
                     //@@
-                    if (next == this.symbol) {
-                        index = this.processEscapeSymbol(model, index);
+                    if (next == symbol) {
+                        index = this.handleEscapeSymbol(index);
                         continue;
                     }
                     //@* comment *@
                     else if (next == "*") {
-                        index = this.processComment(model, index);
+                        index = this.handleComment(index);
                         continue;
                     }
                     else {
@@ -127,27 +96,27 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
                         //}
                         while (next == ' ' || next == '\n') {
                             //继续
-                            next = template[++tokenIndex];
+                            next = this.input[++tokenIndex];
                             //@ if() -> tokenIndex=index+2
                         }
 
                         switch (next) {
                             case '{': //@{code block}
-                                index = this.processCodeBlock(model, index, tokenIndex);
+                                index = this.handleCodeBlock(index, tokenIndex);
                                 break;
                             case '(': //@(var)
-                                index = this.processVariable(model, index, tokenIndex);
+                                index = this.handleVariable(index, tokenIndex);
                                 break;
                             default: //可能有@if @for @while等
-                                var remain = model.template.substring(tokenIndex);
+                                var remain = this.input.substring(tokenIndex);
                                 //each - for/while/if/else - 普通 @...{}
                                 if (Regexs.Each.test(remain)) {
                                     //@each
-                                    index = this.processEach(model, index, tokenIndex);
+                                    index = this.handleEach(index, tokenIndex);
                                 }
                                 else if (Regexs.Noraml.test(remain)) {
                                     //@...{}
-                                    index = this.processNormal(model, index, tokenIndex);
+                                    index = this.handleNormal(index, tokenIndex);
                                 }
                                 break;
                         }
@@ -155,214 +124,216 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
                 }
             }
             //for退出后,还有一段string
-            //processString取 [processedIndex+1,atIndex)就是atIndex前面一个
+            //handleString取 [handleedIndex+1,atIndex)就是atIndex前面一个
             //(template.length-1)+1 如length=10,0-9,9+1,包括9
-            this.processString(model, model.template.length);
+            this.handleString(this.input.length);
+
+            return this.tokens;
         },
 
         /*
-         processXXX(model,index)
-         index为@的位置
-
-         应该更新model的processedIndex
-         并返回新的index应该位置
+         * handleXXX(i)
+         * i为@的位置
+         * 返回新的index应该位置
          */
+
         //普通String,如 <div>@(var变量)中的<div>
+        handleString: function(i) {
+            var content = this.input.substring(this.consumed + 1, i);
 
-        //@之后无空白
-        processString: function(model, atIndex) {
-            var content = model.template.substring(model.processedIndex + 1, atIndex);
-
-            if (content.trim()) //不是全空白
-            {
-                model.segments.push(new Segment(content, ESegmentType.String));
+            if (content.trim()) {
+                this.tok(Parser.Tokens.TK_STRING, content);
             }
-            model.processedIndex = atIndex - 1;
+            this.cousumed = i - 1;
         },
-        processComment: function(model, atIndex) {
+
+        handleComment: function(i) {
             // @* comment *@
-            var remain = model.template.substring(atIndex);
-            var xingIndex = remain.indexOf('*' + this.symbol);
-            if (xingIndex > -1) {
-                //存在*@
-                var commentEnd = xingIndex + atIndex + 1;
-                model.processedIndex = commentEnd;
-                return commentEnd;
+            var remain = this.input.substr(i);
+            var star_index = remain.indexOf('*' + symbol);
+
+            if (star_index > -1) { // *@ exists
+                var commentEnd = star_index + 1 + i;
+                return this.consumed = commentEnd;
             }
-            else {
-                //只有@* 没有 *@
-                //throw new Error("no comment-end(*@) found");
-                return atIndex + 1;
+            else { // no *@ found
+                var before = this.input.substring(0, i + 2); // start...@*
+                var line = before.split('\n').length + 1;
+                var chr = (i + 2) - before.split('\n').reduce(function(sum, line) {
+                    return sum += line.length + 1; // '\r\n'.length = 2
+                }, 0);
+                throw new Error("line : {0},column : {1} no comment-end(*{3}) found".razorFormat(line, chr, symbol));
             }
         },
-        processEscapeSymbol: function(model, atIndex) {
-            //@@ index index+1
-            model.segments.push(new Segment(this.symbol, ESegmentType.String));
-            model.processedIndex = atIndex + 1;
 
-            //index指向block最后
-            return model.processedIndex;
+        handleEscapeSymbol: function(i) {
+            //@@ i i+1
+            this.tok(Parser.Tokens.TK_STRING, symbol);
+            return this.consumed = i + 1;
         },
 
-        //@之后可能有空白
-        processCodeBlock: function(model, atIndex, firstBraceIndex) {
+        handleCodeBlock: function(i, fi) {
             //@ { }
-            //index -> '@'
-            //firstBraceIndex -> '{'
-            var secondBraceIndex = this.getSecondIndex(model.template, firstBraceIndex);
-            var content = model.template.substring(firstBraceIndex + 1, secondBraceIndex);
+            //i  -> '@'
+            //fi -> '{'
+            var sec = this.getSecondIndex(fi);
+            var content = this.input.substring(fi + 1, sec);
             if (content) {
-                //将 &amp; 转化为&
+                // &amp; -> &
                 content = this.decodeHtmlEntity(content);
-                model.segments.push(new Segment(content, ESegmentType.CodeBlock));
+                this.tok(Parser.Tokens.TK_CODE_BLOCK, content);
             }
-            return model.processedIndex = secondBraceIndex;
+            return this.consumed = sec;
         },
-        processVariable: function(model, atIndex, firstBraceIndex) {
-            //@(data) or @(- data)
-            //使用@(- data)来escape,如data="<div>abc</div>"   --> &lt;div&gt;abc
-            var secondBraceIndex = this.getSecondIndex(model.template, firstBraceIndex);
-            var content = model.template.substring(atIndex + 2, secondBraceIndex).trim();
+
+        handleVariable: function(i, fi) {
+            // i  -> '@'
+            // fi -> '('
+
+            //@ (-=? var_or_expression )
+            //@(- ) encode
+            //@(= ) ViewBag.
+
+            var sec = this.getSecondIndex(fi);
+            var content = this.input.substring(fi + 1, sec).trim();
             if (content) {
                 content = this.decodeHtmlEntity(content); //像@( p.age &gt;= 10)
 
                 /*
                  * @(-= name) -=混用,不论顺序
                  */
-                var fi = content[0];
-                var sec = content[1];
+                var fi_chr = content[0];
+                var sec_chr = content[1];
                 var no_viewbag = 0;
                 var escape = 0;
 
                 //@(-= name)
-                if (fi === '=' || sec === '=') {
+                if (fi_chr === '=' || sec_chr === '=') {
                     no_viewbag = 1;
                 }
-                if (fi === '-' || sec === '-') {
+                if (fi_chr === '-' || sec_chr === '-') {
                     escape = 1;
                 }
 
                 content = content.substring(no_viewbag + escape).trim();
 
                 if (no_viewbag) {
-                    content = SegmentCompiler.modelName + "." + content;
+                    content = ViewBag + "." + content;
                 }
                 if (escape) {
-                    //escape 86, non escape 8451
                     //content += ".encodeHtml()"; //速度太慢,不能接受
 
                     //@(- data) data="&1"
                     content += ".replace(/&/g,'&amp;')";
                     content += ".replace(/</g,'&lt;')";
                     content += ".replace(/>/g,'&gt;')";
-                    content += ".replace(/'/g,'&#39;')";
-                    content += '.replace(/"/g,"&#34;")';
-                    content += ".replace(/\\//g,'&#47;')";
+                    // content += ".replace(/'/g,'&#39;')";
+                    // content += '.replace(/"/g,"&#34;")';
+                    // content += ".replace(/\\//g,'&#47;')";
                 }
 
                 //@(data)
-                model.segments.push(new Segment(content, ESegmentType.Variable));
+                this.tok(Parser.Tokens.TK_VAR, content);
             }
-            return model.processedIndex = secondBraceIndex;
+            return this.consumed = sec;
         },
 
-        processEach: function(model, atIndex, firstLetterIndex) {
+        handleEach: function(i, fi) {
+            //i  -> '@'
+            //fi -> 'e' , each's first letter
+
             //@ each(item in items) {
             //  <div>@(item)</div>
             //}
-            //atIndex -> '@'
-            //firstLetterIndex -> 'e' , each's first letter
 
             // '(' ')'
-            var remain = model.template.substring(atIndex); //@xxxxx
-            var firstBraceIndex = remain.indexOf('(') + atIndex;
-            var secondBraceIndex = this.getSecondIndex(
-                model.template, firstBraceIndex);
+            var remain = this.input.substring(i); //@xxxxx
+            var fi_small = remain.indexOf('(') + i;
+            var sec_small = this.getSecondIndex(fi_small);
 
             //'{' '}'
-            var firstBigIndex = remain.indexOf('{') + atIndex;
-            var secondBigIndex = this.getSecondIndex(model.template, firstBigIndex);
+            var fi_big = remain.indexOf('{') + i;
+            var sec_big = this.getSecondIndex(fi_big);
 
             //1.for(var i in items){ item = items[i];
-            //item in items
-            var loop = model.template.substring(firstBraceIndex + 1, secondBraceIndex);
+            var loop = this.input.substring(fi_small + 1, sec_small); //item in items
             var inIndex = loop.indexOf('in');
             var item = loop.substring(0, inIndex).trim()
             var items = loop.substring(inIndex + 2).trim();
 
             //循环体
-            var loopCode = "for(var $index = 0,$length = {1}.length;$index < $length;$index++) { var {0} = {1}[$index];".razorFormat(item, items);
-            model.segments.push(new Segment(loopCode, ESegmentType.CodeBlock));
+            var loop_head = "for(var $index = 0,$length = {1}.length;$index < $length;$index++) { var {0} = {1}[$index];".razorFormat(item, items);
+            this.tok(Parser.Tokens.TK_CODE_BLOCK, loop_head);
 
             //2.循环体
             //{ <div>@(data)</div> }
-            var loopContent = model.template.substring(firstBigIndex + 1, secondBigIndex);
-            var innerSegments = this.process(loopContent);
-            model.segments = model.segments.concat(innerSegments);
+            var loop_body = this.input.substring(fi_big + 1, sec_big);
+            var inner_tokens = new Parser(loop_body).parse();
+            this.tokens = this.tokens.concat(inner_tokens);
 
             //3.}
-            model.segments.push(new Segment('}', ESegmentType.CodeBlock));
+            this.tok(Parser.Tokens.TK_CODE_BLOCK, '}');
 
-            //更新processedIndex 返回index 该有的位置
-            return model.processedIndex = secondBigIndex;
+            return this.consumed = sec_big;
         },
-        processNormal: function(model, atIndex, firstLetterIndex) {
+        handleNormal: function(i, fi) {
+            //i  -> '@'
+            //fi -> @之后第一个非空白字符
+
             //@...{     for/while/if/else/try/catch/switch/case
             //  <div><>
             //}
-            //atIndex -> '@'
-            //firstLetterIndex -> @之后第一个非空白字符
 
-            var remain = model.template.substring(atIndex);
-            var firstIndex = remain.indexOf('{') + atIndex;
-            //在model.template里找匹配的'}'
-            var secondIndex = this.getSecondIndex(model.template, firstIndex);
+            var remain = this.input.substring(i);
+            var fi_big = remain.indexOf('{') + i;
+            var sec_big = this.getSecondIndex(fi_big);
 
-            var part1 = model.template.substring(firstLetterIndex, firstIndex + 1); //for(xxx){
-            var part2 = model.template.substring(firstIndex + 1, secondIndex); //  <div>@(data)</div>
+            var part1 = this.input.substring(fi, fi_big + 1); // for(xxx){
+            var part2 = this.input.substring(fi_big + 1, sec_big); // <div>@(data)</div>
             var part3 = '}'; //}
 
             //1.part1
             part1 = this.decodeHtmlEntity(part1);
-            model.segments.push(new Segment(part1, ESegmentType.CodeBlock));
+            this.tok(Parser.Tokens.TK_CODE_BLOCK, part1);
 
             //2.part2
-            //part2为StringBlock,意味着if while for 可以 嵌套
-            var subSegments = this.process(part2);
-            model.segments = model.segments.concat(subSegments);
+            var inner_tokens = new Parser(part2).parse();
+            this.tokens = this.tokens.concat(inner_tokens);
 
             //3.part3
-            model.segments.push(new Segment(part3, ESegmentType.CodeBlock));
+            this.tok(Parser.Tokens.TK_CODE_BLOCK, part3);
 
-            //更新processedIndex和返回index
-            return model.processedIndex = secondIndex;
+            return this.consumed = sec_big;
         },
 
-        getSecondIndex: function(template, firstIndex) {
-            //index 是第一个{的Index
+        getSecondIndex: function(fi) {
+            // fi = first index
+            // input[fi] = '{' or '('
             var pair = {
                 '{': '}',
                 '(': ')'
             };
 
-            var first = template.substr(firstIndex, 1); //'{' or '('
+            var first = this.input[fi]; //'{' or '('
             var second = pair[first];
-            var count = 1; //firstIndex处是first
+            var count = 1; //input[fi]
 
-            for (var index = firstIndex + 1, length = template.length; index < length; index++) {
-                var cur = template.substr(index, 1);
+            for (var i = fi + 1; i < this.input.length; i++) {
+                var cur = this.input[i];
+
                 if (cur == second) {
                     count--;
                     if (count == 0) {
-                        break;
+                        return i;
                     }
                 }
                 else if (cur == first) {
                     count++;
                 }
             }
-            return index;
+            return -1; //not found
         },
+
         //在浏览器中,html()等方法会将特殊字符encode,导致处理之前是@while(a &gt; 10) { }
         //http://www.w3school.com.cn/html/html_entities.asp
         //'&lt;'    ---->    <
@@ -375,112 +346,81 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
         }
     };
 
-    var SegmentCompiler = {
-        modelName: "ViewBag",
+    //将 ' => \'
+    //将 " => \"
+    //将 回车 => \n
+    function escapeInFunction(s) {
+        if (!s) return s;
+        return s
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/(\r?\n)/g, "\\n");
 
-        //将 ' => \'
-        //将 " => \"
-        //将 回车 => \n
-        //usage : "xxx".escapeInFunction();
-        escapeInFunction: function(str) {
-            if (!str) return str;
-            return str
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '\\"')
-                .replace(/(\r?\n)/g, "\\n");
+        //一个string包含"abcd\nabcd"
+        //写到function也就是
+        //$result += "abcd
+        // abcd";
+        //导致new function出错
+    }
 
-            //一个string包含"abcd\nabcd"
-            //写到function也就是
-            //$result += "abcd
-            // abcd";
-            //导致new function出错
+    var Compiler = {
+        compileToCode: function(tokens) {
+            var code = ["var $result='';"]; //$result
+            for (var i in tokens) {
+                var data = tokens[i].content;
+                switch (tokens[i].type) {
+                    case Parser.Tokens.TK_CODE_BLOCK:
+                        //@{ var data=10; }
+                        code.push(data);
+                        break;
+                    case Parser.Tokens.TK_VAR:
+                        //不允许空值,就是值不存在的情况下会报错
+                        //@(data)
+                        //result.push(data);
+                        var inner = "$result+={0};".razorFormat(data);
+                        code.push(inner);
+                        break;
+                    case Parser.Tokens.TK_STRING:
+                        //div
+                        //result+='div';
+                        // "div"
+                        //result+='\"div\"';
+                        var inner = "$result+='{0}';".razorFormat(
+                            escapeInFunction(data)
+                            //将String直接量中的 ' " 屏蔽
+                        );
+                        code.push(inner);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            code.push("return $result;"); //return $result;
+            return code.join('\n');
         },
 
-        compileToCode: function(segments) {
-            var code = ["var $result='';"]; // $result 结果
+        compile: function(tokens) {
+            var code = Compiler.compileToCode(tokens);
             try {
-                for (var i in segments) {
-                    var data = segments[i].Content;
-                    switch (segments[i].SegmentType) {
-                        case ESegmentType.CodeBlock:
-                            //@{ var data=10; }
-                            code.push(data);
-                            break;
-                        case ESegmentType.Variable:
-                            //不允许空值,就是值不存在的情况下会报错
-                            //@(data)
-                            //result.push(data);
-                            var inner = "$result+={0};".razorFormat(data);
-                            code.push(inner);
-                            break;
-                        case ESegmentType.String:
-                            //div
-                            //result+='div';
-                            // "div"
-                            //result+='\"div\"';
-                            var inner = "$result+='{0}';".razorFormat(
-                                SegmentCompiler.escapeInFunction(data)
-                                //将String直接量中的 ' " 屏蔽
-                            );
-                            code.push(inner);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                code.push("return $result;"); //return $result;
-                return code.join('\n');
+                return new Function(ViewBag, code);
             }
             catch (e) {
-                //包含不能识别的变量
-                console.log("template contains undefined variable,please check template & data !");
                 if (razor.debuging) { //debuging show err & code
-
-                    console.log("----- compiled code start -----");
-                    console.log(code.join('\n'));
-                    console.log("----- compiled code  end  -----");
+                    console.log("error when call 'new Function',please check template & data !");
                     console.log();
-
-                    console.log("----- error start -----");
-                    throw e;
-                }
-                else {
-                    return "return '';";
-                }
-            }
-        },
-
-        //var func=SegmentCompiler.compile(Segment[] segmnets)
-        compile: function(segments) {
-            var code = SegmentCompiler.compileToCode(segments);
-            try {
-                return new Function(SegmentCompiler.modelName, code);
-            }
-            catch (e) {
-                //new Function出错
-                console.log("error when call 'new Function',please check template & data !");
-                if (razor.debuging) { //debuging show err & code
-
                     console.log("----- compiled code start -----");
                     console.log(code);
                     console.log("----- compiled code  end  -----");
                     console.log();
-
-                    console.log("----- error start -----");
-                    throw e;
                 }
-                else {
-                    return function() {
-                        return '';
-                    }
-                }
+                throw e;
             }
         }
-    };
+    }
 
     razor.compile = function(template) {
-        var segments = SegmentProcesser.process(template);
-        var func = SegmentCompiler.compile(segments);
+        var tokens = new Parser(template).parse();
+        var func = Compiler.compile(tokens);
         return func;
     };
     razor.compile._doc = "function func = razor.compile(template)";
@@ -504,30 +444,30 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
     razor.withViewBag = true;
     razor.symbol = function(newSymbol) {
         // get
-        if (!newSymbol) return SegmentProcesser.symbol;
+        if (!newSymbol) return symbol
 
         // set
-        SegmentProcesser.symbol = newSymbol;
+        symbol = newSymbol;
         return this;
     };
     razor.symbol._doc = "\n\
         get or set the char as the symbol\n\
-        get : razor.symbol() default = '@'\n\
-        set : razor.symbol(newSymbol)\n\
+          get : razor.symbol() default = '@'\n\
+          set : razor.symbol(newSymbol)\n\
     ";
 
     razor.model = function(newModelName) {
         // get
-        if (!newModelName) return SegmentCompiler.modelName;
+        if (!newModelName) return ViewBag;
 
         //2 set
-        SegmentCompiler.modelName = newModelName;
+        ViewBag = newModelName;
         return this;
     };
     razor.model._doc = "\n\
         get or set the data object used in the view\n\
-        get : razor.model() default = 'ViewBag'\n\
-        set : razor.model(newModelName)\n\
+          get : razor.model() default = 'ViewBag'\n\
+          set : razor.model(newModelName)\n\
     ";
 
     razor.init = function() {
@@ -545,36 +485,27 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
 
     //工具
     razor.encodeHtml = function(str) {
-        //在@(- data)不用这个因为速度太慢
-        //content += ".replace(/&/g,'&amp;')";
-        //content += ".replace(/</g,'&lt;')";
-        //content += ".replace(/>/g,'&gt;')";
-        //content += ".replace(/'/g,'&#39;')";
-        //content += '.replace(/"/g,"&#34;")';
-        //content += ".replace(/\\//g,'&#47;')";
         return str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/'/g, '&#39;')
-            .replace(/"/g, "&#34;")
-            .replace(/\//g, '&#47;');
+            .replace(/>/g, '&gt;');
     };
     razor.encodeHtml._doc = "encode html entity";
 
     razor.decodeHtml = function(str) {
-        return SegmentProcesser.decodeHtmlEntity(str);
+        return Parser.decodeHtmlEntity(str);
     };
     razor.decodeHtml._doc = "decode html entity";
 
     //高级选项
     razor._advance = {
-        toSegments: SegmentProcesser.process, //process(string)->[]
-        toCode: SegmentCompiler.compileToCode //compileToCode([])->string_as_code
+        toTokens: function(tmpl) {
+            return new Parser(tmpl).parse();
+        },
+        toCode: Compiler.compileToCode
     };
-    razor._advance.toSegments._doc = "Segment[] segments = toSegments(template)";
-    razor._advance.toCode._doc = "String code = toCode(Segment[] segments)";
-
+    razor._advance.toTokens._doc = "Token[] tokens = toTokens(tmpl)";
+    razor._advance.toCode._doc = "String code = toCode(Token[] tokens)";
 
     //if jQuery exists
     //---------------------------------------
@@ -614,7 +545,7 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
         function getTemplate(jqObj) {
             //div 的 innerHTML 已经不是模板
             var template = jqObj[0].tagName === "SCRIPT" ? jqObj.html() //script标签直接取html()
-            : jqObj.attr("razor-template") || jqObj.html(); //div标签,先取razor-template属性
+                : jqObj.attr("razor-template") || jqObj.html(); //div标签,先取razor-template属性
 
             //razor-for/while/if
             //razor-each
@@ -622,7 +553,7 @@ String.prototype.razorFormat._doc = 'str.razorFormat(obj0, obj1, obj2) , no obj 
             var loopHeader = getLoopHeader(jqObj);
             if (loopHeader) {
                 //@ + for(){ + xxx + }
-                template = SegmentProcesser.symbol + loopHeader + template + '}';
+                template = symbol + loopHeader + template + '}';
             }
             return template;
         };

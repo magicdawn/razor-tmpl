@@ -204,7 +204,7 @@ function advanceRender(viewPath, ViewBag, template) {
     ViewBag = ViewBag || {};
 
     var adv = razor._advance;
-    var code = adv.toCode(adv.toSegments(template));
+    var code = adv.toCode(adv.toTokens(template));
 
     var func = new Function(razor.model(), "require", "__dirname", "__filename", code);
     var _require = require('./getRequire.js')(viewPath);
