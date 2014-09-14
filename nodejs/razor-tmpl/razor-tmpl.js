@@ -18,7 +18,7 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
 
 (function(_export) {
     var razor = {
-        version: '1.2.0',
+        version: '1.2.1',
         update_date: '2014-09-14',
         debuging: false
     };
@@ -280,7 +280,7 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
             this.tok(Parser.Tokens.TK_CODE_BLOCK, '}');
 
             //StringBlock END,trim end
-            this.tok(Parser.Tokens.TK_LOOP_END,'');
+            // this.tok(Parser.Tokens.TK_LOOP_END,'');
 
             return this.consumed = sec_big;
         },
@@ -312,7 +312,7 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
             this.tok(Parser.Tokens.TK_CODE_BLOCK, part3);
 
             //StringBlock END,trim end
-            this.tok(Parser.Tokens.TK_LOOP_END,'');
+            // this.tok(Parser.Tokens.TK_LOOP_END,'');
 
             return this.consumed = sec_big;
         },
