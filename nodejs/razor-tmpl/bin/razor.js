@@ -6,77 +6,66 @@ var razor = require('../');
 var util = require('util');
 
 i18n.lang = 'en'; //默认english
-var cn = ~ (new Date()).toLocaleString().indexOf("中国标准时间");
-if (cn) i18n.lang = "cn";
+if (~(new Date()).toLocaleString().indexOf("中国标准时间"))
+    i18n.lang = "cn";
 
-if (process.argv.length < 3) {
+// node razor.js
+// help
+if (process.argv.length === 2) {
     return console.log(i18n("help"));
 }
 
-var paths = getPaths(); // a,b,c
-var output = process.argv[3]; // abc.xxx
-
-var dest = '';
-if (output) {
-    if (output.slice(-1) == '/' || output.slice(-1) == '\\') {
-        dest = output + "%s.html";
-    }
-    else if (output.indexOf('.') === -1) { //razor a,b,c css -> a.css,b.css,c.css
-        dest = "%s." + output;
-    }
-    else {
-        dest = output;
-    }
-}
-
-paths.forEach(function(p) {
+//node razor.js a.rhtml,b.rhtml
+process.argv[2].split(',').forEach(function(p) {
     if (!fs.existsSync(p)) {
         return console.log(i18n("file_not_found"), p);
     }
-
     var result = razor.renderFileSync(p);
-    var cur_dest = '';
 
-    if (dest) {
-        if (dest.indexOf("%s") > 0)
-            cur_dest = util.format(dest, pathFn.basename(p, pathFn.extname(p)));
-        else
-            cur_dest = dest;
+    //decide dest
+
+    //1.指定了-no 就不生成
+    var output = process.argv[3];
+    if (output == '-n' || output == '-no' || output == '-no-output') {
+        //不生成，打印到console上
+        return console.log(result);
     }
-    else {
+
+    //2.output
+    var dest = '';
+    if (output) { //output存在
+        if (output.slice(-1) == '/' || output.slice(-1) == '\\') { //node razor.js index.rhtml output/
+            var filename = pathFn.basename(p, pathFn.extname(p));
+            var ext = pathFn.extname(p).slice(2);
+            dest = output + filename + '.' + ext;
+        }
+        else { // node razor.js index.rhtml a.htm
+            dest = output;
+        }
+    }
+    else { //output不存在
+        // @{dest} > index.html(默认)
+
         //尝试从模板中读取 dest = xxx
         //regex var dest = "abc";
         //"var dest = 'abc';".match(/var\s*?dest\s*?=\s*?['"]([\s\S]+)['"];?/)
-        var tmpl = fs.readFileSync(p) + "";
+        var tmpl = fs.readFileSync(p).toString();
         var arr = tmpl.match(/var\s*?dest\s*?=\s*?['"]([\s\S]+)['"]/); // match group index input
-
         if (arr && arr[1]) {
-            cur_dest = pathFn.join(pathFn.dirname(p), arr[1]);
-        };
-    }
-
-    if (cur_dest) {
-        fs.writeFileSync(cur_dest, result);
-        console.log(i18n("success"), cur_dest);
-    }
-});
-
-function getPaths() {
-    var paths = [];
-    var path = process.argv[2]; // node razor.js a,b,c
-
-    // a,b.razor,c
-    paths = path.split(',').map(function(p) {
-        if (pathFn.basename(p).indexOf('.') == '-1' && !fs.existsSync(p)) {
-            p += '.razor';
+            console.log(i18n('found_dest_expression'),arr[0]);
+            dest = pathFn.join(pathFn.dirname(p), arr[1]);
         }
-        return pathFn.resolve(p);
-    });
-    return paths;
-}
+        else {
+            var filename = pathFn.basename(p, pathFn.extname(p));
+            var ext = pathFn.extname(p).slice(2);
+            dest = filename + '.' + ext;
+        }
+    }
+    fs.writeFileSync(dest, result);
+    console.log(i18n("success"), dest);
+});
 
 function i18n(arg) {
     var lang = i18n.lang;
     return (require("./i18n/" + lang))[arg];
 }
-i18n.lang = 'en'; //默认english

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Created BY Magicdawn;
  */
 String.prototype.razorReplaceAll = function(old, replaceValue) {
@@ -18,8 +18,8 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
 
 (function(_export) {
     var razor = {
-        version: '1.1.0',
-        update_date: '2014-09-09',
+        version: '1.2.0',
+        update_date: '2014-09-14',
         debuging: false
     };
 
@@ -46,6 +46,9 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
     var ViewBag = 'ViewBag';
 
     function Parser(input) {
+        if(typeof input !== 'string')
+            input = input.toString();
+
         this.input = input;
         this.consumed = -1;
         this.tokens = [];
@@ -54,14 +57,16 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
     Parser.Tokens = {
         "TK_VAR": "TK_VAR",
         "TK_CODE_BLOCK": "TK_CODE_BLOCK",
-        "TK_STRING": "TK_STRING"
+        "TK_STRING": "TK_STRING",
+
+        "TK_LOOP_END" : "TK_LOOP_END" //trim right
     };
 
     Parser.prototype = {
-        tok: function(type, content) {
+        tok: function(type, val) {
             this.tokens.push({
                 type: type,
-                content: content
+                val: val
             });
         },
 
@@ -267,12 +272,15 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
 
             //2.循环体
             //{ <div>@(data)</div> }
-            var loop_body = this.input.substring(fi_big + 1, sec_big);
+            var loop_body = this.input.substring(fi_big + 1, sec_big).trimLeft();
             var inner_tokens = new Parser(loop_body).parse();
             this.tokens = this.tokens.concat(inner_tokens);
 
             //3.}
             this.tok(Parser.Tokens.TK_CODE_BLOCK, '}');
+
+            //StringBlock END,trim end
+            this.tok(Parser.Tokens.TK_LOOP_END,'');
 
             return this.consumed = sec_big;
         },
@@ -302,6 +310,9 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
 
             //3.part3
             this.tok(Parser.Tokens.TK_CODE_BLOCK, part3);
+
+            //StringBlock END,trim end
+            this.tok(Parser.Tokens.TK_LOOP_END,'');
 
             return this.consumed = sec_big;
         },
@@ -367,7 +378,7 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
         compileToCode: function(tokens) {
             var code = ["var $result='';"]; //$result
             for (var i in tokens) {
-                var data = tokens[i].content;
+                var data = tokens[i].val;
                 switch (tokens[i].type) {
                     case Parser.Tokens.TK_CODE_BLOCK:
                         //@{ var data=10; }
@@ -391,6 +402,9 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
                         );
                         code.push(inner);
                         break;
+                    case Parser.Tokens.TK_LOOP_END:
+                        code.push('$result = $result.trimRight();')
+                    break;
                     default:
                         break;
                 }
@@ -405,14 +419,14 @@ String.prototype.razorFormat._doc = '"{0},{1},{2}".razorFormat(obj0, obj1, obj2)
                 return new Function(ViewBag, code);
             }
             catch (e) {
-                if (razor.debuging) { //debuging show err & code
+                //if (razor.debuging) { //debuging show err & code
                     console.log("error when call 'new Function',please check template & data !");
                     console.log();
                     console.log("----- compiled code start -----");
                     console.log(code);
                     console.log("----- compiled code  end  -----");
                     console.log();
-                }
+                //}
                 throw e;
             }
         }

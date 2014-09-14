@@ -3,18 +3,18 @@ var fs = require('fs');
 var razor = require('../../');
 
 console.log("---------基本layout,ViewBag.layout指定,同步----------");
-var result = razor.renderFileSync('1.razor', {
+var result = razor.renderFileSync('1.rhtml', {
     title: "这是title",
     body: '这是body',
-    layout: 'layout/1.razor',
+    layout: 'layout/1.rhtml',
 });
 console.log(result);
 fs.writeFileSync("1.sync.html", result);
 console.log("---------基本layout,ViewBag.layout指定,异步----------");
-var result = razor.renderFile('1.razor', {
+var result = razor.renderFile('1.rhtml', {
     title: "这是title",
     body: '这是body',
-    layout: 'layout/1.razor',
+    layout: 'layout/1.rhtml',
 }, function(err, result) {
     console.log(result);
     fs.writeFileSync("1.html", result);
@@ -22,14 +22,14 @@ var result = razor.renderFile('1.razor', {
 
 
 console.log("---------基本layout,@{layout}指定,同步----------");
-var result = razor.renderFileSync('2.razor', {
+var result = razor.renderFileSync('2.rhtml', {
     title: "这是title",
     body: '这是body'
 });
 console.log(result);
 fs.writeFileSync("2.sync.html", result);
 console.log("---------基本layout,@{layout}指定,异步----------");
-var result = razor.renderFile('2.razor', {
+var result = razor.renderFile('2.rhtml', {
     title: "这是title",
     body: '这是body'
 }, function(err, result) {
@@ -39,14 +39,14 @@ var result = razor.renderFile('2.razor', {
 
 
 console.log("---------基本layout + section,同步----------");
-var result = razor.renderFileSync('3.razor', {
+var result = razor.renderFileSync('3.rhtml', {
     title: "这是title",
     body: '这是body'
 });
 console.log(result);
 fs.writeFileSync("3.sync.html", result);
 console.log("---------基本layout + section,异步----------");
-var result = razor.renderFile('3.razor', {
+var result = razor.renderFile('3.rhtml', {
     title: "这是title",
     body: '这是body'
 }, function(err, result) {
@@ -56,14 +56,14 @@ var result = razor.renderFile('3.razor', {
 
 
 console.log("---------layout嵌套,同步----------");
-var result = razor.renderFileSync('4.razor', {
+var result = razor.renderFileSync('4.rhtml', {
     title: "这是title",
     body: '这是body'
 });
 console.log(result);
 fs.writeFileSync("4.sync.html", result);
 console.log("---------layout嵌套,异步----------");
-var result = razor.renderFile('4.razor', {
+var result = razor.renderFile('4.rhtml', {
     title: "这是title",
     body: '这是body'
 }, function(err, result) {
@@ -73,7 +73,7 @@ var result = razor.renderFile('4.razor', {
 
 
 console.log("---------include,同步----------");
-var result = razor.renderFileSync('5.razor', {
+var result = razor.renderFileSync('5.rhtml', {
     title: "这是title",
     body: '这是body',
     main: "main",
@@ -83,7 +83,7 @@ var result = razor.renderFileSync('5.razor', {
 console.log(result);
 fs.writeFileSync("5.sync.html", result);
 console.log("---------include,异步----------");
-var result = razor.renderFile('5.razor', {
+var result = razor.renderFile('5.rhtml', {
     title: "这是title",
     body: '这是body',
     main: "main",
