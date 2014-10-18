@@ -20,9 +20,8 @@ function getRequire(file) {
     m.filename = file; // filename = "d:/js/abcd.js"
     m.loaded = true;
     m.paths = Module._nodeModulePaths(pathFn.dirname(file)); // m.paths = [d:/js/node_modules ]
-    if (os.platform() === 'win32') {
-        var home = process.env.USERPROFILE;
-        m.paths.push(pathFn.join(home, "AppData", "Roaming", "npm", "node_modules")); //npm i xxx -g那个地方
+    if(process.env.NODE_PATH){
+        m.paths.push(process.env.NODE_PATH); // npm i xxx -g
     }
 
     return function(request) {
@@ -32,9 +31,9 @@ function getRequire(file) {
 
 if (process.mainModule === module) {
     //do test
-    var req = getRequire("D:\\blog\\hexo\\b.js");
+    var req = getRequire("D:\\blog\\hexo\\not_exists.js");
     req('fs');
-    req('yamljs');
+    req('yamljs'); // npm i global
     req('D:\\js\\test\\node_modules\\marked');
     req('./package.json');
     console.log("通过测试 Native/Third Party/absolute path/relative path...");

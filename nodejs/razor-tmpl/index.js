@@ -171,7 +171,13 @@ razor.renderFile = function(viewPath, ViewBag, callback) {
     getFullTemplate(viewPath, ViewBag, function(err, template) {
         if (err)
             return callback(err);
-        callback(null, advanceRender(viewPath, ViewBag, template));
+        try {
+            var result = advanceRender(viewPath, ViewBag, template);
+            callback(null, result);
+        }
+        catch (e) {
+            callback(e);
+        }
     });
 };
 razor.renderFile._doc = "usage : razor.renderFile(viewPath,[ViewBag],callback)";
