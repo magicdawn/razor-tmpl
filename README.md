@@ -2,6 +2,7 @@
 <script src="razor-tmpl.js"></script>
 
 ###中文 [CSDN](https://code.csdn.net/magicdawn/razor-tmpl-doc)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/magicdawn/razor-tmpl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 #Thanks To [kino.razor](https://github.com/kinogam/kino.razor)
 razor-tmpl is a template engine for JavaScript based on kino.razor
