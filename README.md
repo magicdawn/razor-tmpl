@@ -3,15 +3,16 @@ razor-style template engine for JavaScript. node.js & browser are supported.
 
 ## Install
 - using with node.js or browserify
-	```shell
-	$ npm i razor-tmpl --save
-	```
+
+    ```js
+    $ npm i razor-tmpl --save
+    ```
 - using in browser with a script tag
-	```html
-	<script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>	
-	```
-	
-	Note: legacy browsers need ES5 support,see [es5-shim]()
+    ```html
+    <script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
+    ```
+
+    Note: legacy browsers need ES5 support,see [es5-shim]()
 
 
 
@@ -24,7 +25,7 @@ razor-style template engine for JavaScript. node.js & browser are supported.
 var razor = require('razor-tmpl');
 var template = '@{ var name = "zhangsan"; } name is @name , age is @age .';
 var locals = {
-	age: 18
+    age: 18
 };
 console.log(razor.render(template,locals));// name is zhang, age is 18
 ```
@@ -35,28 +36,28 @@ console.log(razor.render(template,locals));// name is zhang, age is 18
 
 # Syntax
 - `@{ code-block }`
-- `@variable` or `@(variable)` or `@(- variable) - means escape ` 
-	
-	NOTE: `@var` matched with `/^([\w\._\[\]])+/`
-	
+- `@variable` or `@(variable)` or `@(- variable) - means escape `
+
+    NOTE: `@var` matched with `/^([\w\._\[\]])+/`
+
 - control flow
-	- @for(){  }
-	- @while(){ }
-	- @if(){ ... } else [if()] { ... }
-	- @each(item in items), it's handshort for 
-		```js
-		for(var $index = 0;$index < items.length,$index++){
-			var item = items[$index];
-		}
-		```
+    - @for(){  }
+    - @while(){ }
+    - @if(){ ... } else [if()] { ... }
+    - @each(item in items), it's handshort for
+        ```js
+        for(var $index = 0;$index < items.length,$index++){
+            var item = items[$index];
+        }
+        ```
 
 # node syntax
-- `@layout("layout.html");` / `@renderBody();` 
-	for specify layout / fill layout
+- `@layout("layout.html");` / `@renderBody();`
+    for specify layout / fill layout
 
 - `@renderSection('header');` / `@section`
-	for define a section / fill a section
-	
+    for define a section / fill a section
+
 - `@include();` support
 
 # API
