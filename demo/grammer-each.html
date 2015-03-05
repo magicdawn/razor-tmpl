@@ -3,9 +3,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-    <script src="../razor-tmpl.js"></script>
+    <script src="razor-tmpl.js"></script>
     <script>
-        razor.debuging = true;
         window.onload = function () {
             var res = razor.render(test.innerHTML, {
                 persons: [
@@ -20,8 +19,7 @@
 <body>
     <script type="text/template" id="test">
         <ul>
-            @ each (p in ViewBag.persons)
-            {
+            @each (p in locals.persons){
                 <li>
                     <div>@(p.name)</div>
                     <div>@(p.age)</div>

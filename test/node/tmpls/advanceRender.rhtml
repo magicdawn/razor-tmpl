@@ -1,0 +1,9 @@
+dirname  = @__dirname
+filename = @__filename
+
+@{
+    // code block to test `require`
+    var fs = require('fs'); // native
+    var browserify = require('browserify'); // 3rd , browserify is devDependency
+    var razor = require('../../../lib/node/index'); // relative
+}

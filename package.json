@@ -1,0 +1,31 @@
+{
+  "name": "razor-tmpl",
+  "version": "1.3.0",
+  "description": "razor style template engine for JavaScript",
+  "main": "./lib/node/index.js",
+  "browser": "./lib/index.js",
+  "bin": {
+    "razor": "./lib/node/bin/razor"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magicdawn/razor-tmpl"
+  },
+  "keywords": [
+    "razor",
+    "template"
+  ],
+  "author": "magicdawn",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^9.0.3",
+    "gulp": "^3.8.11",
+    "gulp-uglify": "^1.1.0",
+    "gulp-util": "^3.0.4",
+    "mocha": "^2.1.0",
+    "through2": "^0.6.3"
+  }
+}

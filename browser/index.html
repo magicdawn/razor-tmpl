@@ -1,0 +1,20 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>razor-tmpl demo</title>
+    <script type="text/template" id='tmpl'>
+        @each(i in [1,2,3]){
+            <div>@i</div>
+        }
+    </script>
+</head>
+<body>
+    <div id="board">
+    </div>
+    <script src='../demo/jquery-1.7.1.min.js'></script>
+    <script src="razor-tmpl.js"></script>
+    <script>
+        board.innerHTML = razor.render(tmpl.innerHTML);
+    </script>
+</body>
+</html>

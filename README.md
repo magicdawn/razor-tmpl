@@ -1,178 +1,81 @@
-<script src="jquery-1.7.1.min.js"></script>
-<script src="razor-tmpl.js"></script>
+# razor-tmpl
+razor-style template engine for JavaScript. node.js & browser are supported.
 
-###中文 [CSDN](https://code.csdn.net/magicdawn/razor-tmpl-doc)
-
-#Thanks To [kino.razor](https://github.com/kinogam/kino.razor)
-razor-tmpl is a template engine for JavaScript based on kino.razor
-
-
-#Install
-for browser
-```html
-<script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
-```
-for nodejs
-```shell
-$ npm i razor-tmpl
-```
-
-#Tips
-1
----
-I add `_doc` property for every function,as python `__doc__`does,you can use it in console,like
-```shell
-> razor = require('razor-tmpl'); // or in browser,no need to require
-> console.log(razor.render._doc) // will show the basic usage of razor.render
-```
-
-2
----
-gulp plugin available : [gulp-razor-tmpl](https://github.com/magicdawn/gulp-razor-tmpl)
+## Install
+- using with node.js or browserify
+	```shell
+	$ npm i razor-tmpl --save
+	```
+- using in browser with a script tag
+	```html
+	<script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>	
+	```
+	
+	Note: legacy browsers need ES5 support,see [es5-shim]()
 
 
-3
----
-Sublime Text 3 Editor support,use `Package Control` search `razor-tmpl`
 
-![](https://raw.githubusercontent.com/magicdawn/razor-tmpl.sublime-package/master/razor.tmLanguage.screenshot.jpg)
-
-
+## Related Resource
+- Sublime Text 3 Editor support,search `razor-tmpl` via Package Control
 
 
 #Get Started
-
-##a case in browser
-```html
-<script type="text/template" id="test">
-	<!-- put the template in a script tag with type="text/template" -->
-    <div>
-    	@each(p in persons)
-        {
-        	<div data-age="@(p.age)">
-                name : @(p.name) <br/>
-                age : @(p.age)<br />
-                ---<br />
-            </div>
-        }
-        
-        <!--
-         and persons looks like
-         	persons : [
-                { name : 'zhangsan' ,age : 18 },
-                { name : 'lisi' , age : 19 }
-        	];
-        -->
-    </div>
-</script>
-```
-then use
 ```js
-razor.render(test.innerHTML,{
-	persons : [
-        { name : 'zhangsan' ,age : 18 },
-        { name : 'lisi' , age : 19 }
-    ];
-})
+var razor = require('razor-tmpl');
+var template = '@{ var name = "zhangsan"; } name is @name , age is @age .';
+var locals = {
+	age: 18
+};
+console.log(razor.render(template,locals));// name is zhang, age is 18
 ```
-this will get
-```html
-<div>
-	<div data-age="18">
-    	name : zhangsan <br/>
-        age : 18<br />
-        ---<br />
-    </div>
-    <div data-age="19">
-    	name : lisi <br/>
-        age : 19<br />
-        ---<br />
-    </div>    
-</div>
-```
-*use `$index`* to refer the index in the `each` loop,it's implemented with
+
+- `age` is passed by `locals`, can be referenced as `@age` or `@locals.age`.
+- `locals` can be configed via `razor.localsName`, such as `razor.localsName = "model";` then use `@model.age`
+
+
+# Syntax
+- `@{ code-block }`
+- `@variable` or `@(variable)` or `@(- variable) - means escape ` 
+	
+	NOTE: `@var` matched with `/^([\w\._\[\]])+/`
+	
+- control flow
+	- @for(){  }
+	- @while(){ }
+	- @if(){ ... } else [if()] { ... }
+	- @each(item in items), it's handshort for 
+		```js
+		for(var $index = 0;$index < items.length,$index++){
+			var item = items[$index];
+		}
+		```
+
+# node syntax
+- `@layout("layout.html");` / `@renderBody();` 
+	for specify layout / fill layout
+
+- `@renderSection('header');` / `@section`
+	for define a section / fill a section
+	
+- `@include();` support
+
+# API
+## common( for node.js & browser)
+- razor.render(template,locals) => result
+
+## browser side only
+*only if jQuery load before razor-tmpl as window.jQuery*
+- $.fn.render -> use a dom element or a script tag's innerHTML as template
+
+## node side only
+- razor.renderFileSync(file,locals) => result
+- razor.enableCache = false | true
+
+*for node's template*
 ```js
-for(var $index = 0,$length=persons.length;$index<$length;$index++){
-	var p = persons[$index];
+require/__dirname/__filename
 ```
-that's each help you done,and you can use for `@for(){ ... }` as you like.
-and template can also specified in the view,see `doc/template.md`
-
-##a case in nodejs & express
-
-views\index.razor
-```html
-<div>
-    @(ViewBag.body)
-</div>
-```
-views\layout\layout.razor
-```html
-<!doctype html>
-<html>
-    <head>
-        <title>
-            @(ViewBag.title)
-        </title>
-    </head>
-    <body>
-        <div class="container">
-            @renderBody()
-        </div>
-    </body>
-</html>
-```
-
-use
-```js
-razor.renderFileSync('index.razor',{
-    title: "this is title",
-    body: 'this is body',
-    layout: 'layout/layout.razor',
-}
-```
-get result like
-```html
-<!doctype html>
-<html>
-    <head>
-        <title>
-            this is title
-        </title>
-    </head>
-    <body>
-        <div class="container">
-            <div>
-    this is body
-</div>
-        </div>
-    </body>
-</html>
-```
-so that's it.
-type `console.log(razor._express._doc)`,you got this
-```
-> console.log(razor._express._doc)                        
-                                                          
-    interface for Express Framework:                      
-                                                          
-    var app = express();                                  
-    ...                                                   
-    app.engine('.razor',require('razor-tmpl')._express);
-                                                          
-undefined                                                 
->                                                         
-```
-that's the usage,`app.engine('.razor',require('razor-tmpl')._express);`
-
-
-
-#Features
-- razor way templating,see `doc/template.md`
-- it's all customed,use symbol to change '@',use model to change 'ViewBag'
-- support if/else if/else if/......else/swith case , even no one may use that
-- with jquery functions, render/renderToParent,template canbe written not only in a SCRIPT tag,and renderToParent is extreme convinent. see `doc/jquery.md`
-- for node,i found a way that makes the template to access file system,database... possible,just call `razor.renderFile[Sync]`,the view can require data,no need to pass through,see `doc/advance.md`
+is also available,so you can use `razor` cli tool to render file without js code participate in.
 
 #Speed
 Comparsion : http://cnodejs.org/topic/4f16442ccae1f4aa27001109
