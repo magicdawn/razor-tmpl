@@ -4,15 +4,18 @@ razor-style template engine for JavaScript. node.js & browser are supported.
 ## Install
 - using with node.js or browserify
 
-    ```js
+    ```
     $ npm i razor-tmpl --save
     ```
 - using in browser with a script tag
     ```html
-    <script src="https://rawgit.com/magicdawn/razor-tmpl/master/razor-tmpl.js"></script>
+    <script src="https://rawgit.com/magicdawn/razor-tmpl/master/browser/razor-tmpl.js"></script>
     ```
 
-    Note: legacy browsers need ES5 support,see [es5-shim]()
+    locate in the `browser directory`,contains dist
+    `razor-tmpl.js` & `razor-tmpl.min.js`
+
+    Note: legacy browsers need ES5 support,see [es5-shim](https://github.com/es-shims/es5-shim)
 
 
 
