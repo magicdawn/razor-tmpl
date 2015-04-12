@@ -8,7 +8,9 @@
     "razor": "./lib/node/bin/razor"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --recursive"
+    "test": "./node_modules/.bin/mocha --recursive",
+    "browser": "browserify lib/index.js --standalone razor > browser/razor-tmpl.js",
+    "min": "uglifyjs browser/razor-tmpl.js > browser/razor-tmpl.min.js"
   },
   "repository": {
     "type": "git",
@@ -21,11 +23,12 @@
   "author": "magicdawn",
   "license": "ISC",
   "devDependencies": {
-    "browserify": "^9.0.3",
+    "browserify": "^7.1.0",
     "gulp": "^3.8.11",
     "gulp-uglify": "^1.1.0",
     "gulp-util": "^3.0.4",
     "mocha": "^2.1.0",
-    "through2": "^0.6.3"
+    "through2": "^0.6.3",
+    "uglifyjs": "^2.4.10"
   }
 }
