@@ -3,32 +3,25 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title></title>
-    <script src="../jquery-1.7.1.min.js"></script>
-    <script src="../razor-tmpl.js"></script>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
     <script>
         $(function () {
-            razor.symbol('~');
-            $("#test-template").renderToParent();
+            razor.symbol = '~';
+            $("#test-template").render();
         });
     </script>
 </head>
 <body>
-    <div style="text-align:center;">
-        <div>
-            <script type="text/template" id="test-template">
-                ~{
-                    var vfalse=false;
-                    var vtrue=true;
-                }
-                ~if(vtrue)
-                {
-                    <div>~(vtrue)</div>
-                }
-                ~for(var i=0;i < 10;i++)
-                {
-                    <div>~(vfalse)</div>
-                }
-            </script>
+    <div style="font-size:25px;">
+        <div id="test-template">
+            ~{
+                console.log("I'm a code block in template!");
+            }
+
+            ~for(var i=0;i < 10;i++){
+                <div>~i</div>
+            }
         </div>
     </div>
 </body>

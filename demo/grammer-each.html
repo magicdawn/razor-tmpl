@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-    <script src="razor-tmpl.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
     <script>
         window.onload = function () {
             var res = razor.render(test.innerHTML, {
@@ -12,7 +12,7 @@
                     { name: 'wang', age: 19 }
                 ]
             });
-            document.write(razor.encodeHtml(res));
+            document.body.innerHTML = res;
         };
     </script>
 </head>
@@ -21,8 +21,8 @@
         <ul>
             @each (p in locals.persons){
                 <li>
-                    <div>@(p.name)</div>
-                    <div>@(p.age)</div>
+                    <div>@p.name</div>
+                    <div>@p.age</div>
                 </li>
             }
         </ul>

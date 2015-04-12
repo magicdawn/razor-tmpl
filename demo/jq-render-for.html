@@ -3,8 +3,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-    <script src="../jquery-1.7.1.min.js"></script>
-    <script src="../razor-tmpl.js"></script>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
 
     <script>
         $(function () {
@@ -21,13 +21,14 @@
                         return Math.floor(Math.random()*255);
                     };
                     var getRandomColor = function(){
-                        return 'rgb({0},{1},{2})'.razorFormat(getRandomInt(),getRandomInt(),getRandomInt());
+                        var fmt = razor.util.format;
+                        return fmt('rgb({0},{1},{2})',getRandomInt(),getRandomInt(),getRandomInt());
                     };
                 }
 
                 @* 本来是style="width:80%" 把这个80用@(随机数)代替就是了 *@
                 <div style="background-color:@(getRandomColor());color:white;width:@(Math.random()*(100-10)+10)%;">
-                    这是第 @(i) 个
+                    the @(i) one
                 </div>
             </div>
         </div>

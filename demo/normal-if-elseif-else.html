@@ -3,39 +3,37 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-    <script src="../jquery-1.7.1.min.js"></script>
-    <script src="../razor-tmpl.js"></script>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
     <script>
         $(function () {
-            var ViewBag = {};
-            ViewBag.list = [
+            var locals = {
+                list: [
                     { age: 38, name: "zhangsan" },
                     { age: 19, name: "lisi" },
                     { age: 13, name: "wangwu" }
-            ];
-            $(test).renderToParent(ViewBag);
+                ]
+            };
+
+            $(test).render(locals);
         });
     </script>
 </head>
 <body>
-    <div>
-        <script type="text/template" id="test">
-            @each(person in ViewBag.list){
-                <div data-name="@(person.name)">
-                    @if(person.age > 30){
-                        这么大了啊~
-                    }
-                    @else if(person.age > 18)
-                    {
-                        哎哟,不错哟,成年了
-                    }
-                    @else
-                    {
-                        小屁孩,哈哈
-                    }
-                </div>
-            }
-        </script>
+    <div razor-template='' id="test">
+        @each(person in locals.list){
+            <div data-name="@person.name">
+                @person.name :
+
+                @if(person.age > 30){
+                    You are old.
+                } else if(person.age > 18) {
+                    Yeah,pretty good.
+                } else {
+                    too young,too naive.
+                }
+            </div>
+        }
     </div>
 </body>
 </html>

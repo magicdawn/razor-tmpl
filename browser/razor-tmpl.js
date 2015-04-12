@@ -237,6 +237,7 @@ if (!$) return;
  */
 var razor = require('./index');
 var format = require('./util').format;
+var unescape = require('./util').unescape;
 
 
 /**
@@ -294,6 +295,8 @@ function getTemplate($el) {
     if (header) {
       ret = razor.symbol + header + ret + '}';
     }
+
+    ret = unescape(ret);
 
     // cachesd to `razor-tmpl` attribute
     $el.attr('razor-template', ret);

@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
-    <script src="../razor-tmpl.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
 
     <script>
         window.onload = function () {
@@ -17,22 +17,19 @@
     </script>
 </head>
 <body>
-    只加载razor-tmpl
     <div id="container">
 
     </div>
     <script type="text/template" id="template">
         @{
-            var b = 3 > 4;
             var i=10;
         }
-        @ while ( i>0 )  {
+        @while ( i>0 )  {
             @{
                 //code block
                 i--;
             }
-            <div>咋还没到0呢...</div>
-            <div>现在i:@(i)</div> 
+            <div>now i = @i</div>
         }
     </script>
 </body>

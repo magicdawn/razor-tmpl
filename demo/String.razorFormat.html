@@ -2,38 +2,29 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title></title>
-    <script src="../jquery-1.7.1.min.js"></script>
-    <script src="../razor-tmpl.js"></script>
+    <title>razor.util.format</title>
+    <script src="jquery-1.7.1.min.js"></script>
+    <script src="../browser/razor-tmpl.js"></script>
 
     <script>
         $(function () {
-            $("#btn1").click(function () {
-                var $div = $("#container");
-                $div.html("这是文字啊,{0},位置会被输入的代替...".razorFormat($("#text-input").val()));
+            var format = razor.util.format;
+            var $div = $("#container");
+            var $input = $('input');
+
+            $input.on('input',function() {
+                var result = format("some text {0} will be replaced",$input.val());
+                $div.html(result);
             });
-
-            //1+2=3=2+1
-            //success
-            "{0} + {1} = {2} = {1} + {0}".format(1, 2, 3);
-
-            //"hello is very good"
-            //success
-            "{0} is very good".format("hello");
-
-            //
-            "hello wo de ".format();
         });
     </script>
 </head>
 <body>
-
-    <input type="text" id="text-input"/>
-    <button id="btn1">输入试试</button>
+    <input type="text" id="text-input" placeholder="try some input ..." />
     <br />
-    这是文字啊,{0},位置会被输入的代替...
+    some text {0} will be replaced
     <div id="container" style="background-color:cyan;">
-        这是文字啊,{0},位置会被输入的代替...
+        some text {0} will be replaced
     </div>
 </body>
 </html>
