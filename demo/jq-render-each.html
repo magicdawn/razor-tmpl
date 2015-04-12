@@ -22,12 +22,12 @@
 </head>
 <body>
     <div>
-        <button id="btn1">Click me !</buttonid>
+        <button id="btn1">Click me !</button>
     </div>
 
     <div id="test-razor-each" razor-template razor-each="person in locals.list">
-        <div>Q: Got a name ? A: @(person.name)</div>
-        <div>Q: And age ? A: @(person.age)</div>
+        <div>Q: Got a name ? A: @person.name</div>
+        <div>Q: And age ? A: @person.age</div>
     </div>
 </body>
 </html>
