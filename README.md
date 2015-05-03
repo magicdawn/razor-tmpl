@@ -92,11 +92,11 @@ console.log(razor.render(template,locals));// name is zhang, age is 18
         }
         ```
 - code block
-	```html
+    ```html
     @{ 
-    	// here is some code
+        // here is some code
         // as you see in @while(){ locals.val--; }
-	}
+    }
     ```
 - comment
 	```html
