@@ -109,7 +109,20 @@ console.log(razor.render(template,locals));// name is zhang, age is 18
 
 ## API
 ### common( for node.js & browser)
+
 - razor.render(template,locals) => result
+- Engine
+	```js
+    var razor = require('razor');
+    var Engine = razor.Engine; // razor engine class definition
+    
+    // And razor is the default export engine
+    razor instanceof Engine; // true
+    ```
+    
+    - engine#localsName : config `locals` used in template
+    - engine#symbol : config `@` used in template
+    - engine#easyLocals : default to `true`,means `@val` -> `@locals.val`
 
 ### browser side only
 *only if jQuery load before razor-tmpl as window.jQuery*
