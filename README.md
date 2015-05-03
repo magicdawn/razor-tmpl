@@ -98,6 +98,17 @@ console.log(razor.render(template,locals));// name is zhang, age is 18
         // as you see in @while(){ locals.val--; }
 	}
     ```
+- comment
+	```html
+    @{
+    	// code-block is normal js
+        /* so whatever is OK */
+    }
+    
+    @* it's a razor comment and will not be in the output *@
+    
+    <!-- html comment, output as it like -->
+    ```
 
 ### template inherit syntax for node.js
 
