@@ -153,8 +153,9 @@ is also available,so you can use `razor` cli tool to render file without js code
 
 ## TODOS
 
-- [ ] fix help message in bin cli tool
+- [x] fix help message in bin cli tool
 - [ ] add error message for template parsing
+- [ ] add debug mode for easy debug
 - [ ] add `path` option for node side, same as less import path
 - [ ] implement elegant template parser
 

@@ -9,8 +9,9 @@ var razor = require('../');
  * decide lang
  */
 var lang = 'en';
-(new Date).toLocaleString()
-  .indexOf("中国标准时间") > -1 && (lang = "cn");
+if ((new Date).toLocaleString().indexOf("中国标准时间") > -1) {
+  lang = 'cn';
+}
 var i18n = require('./i18n/' + lang);
 
 /**
@@ -24,13 +25,15 @@ var argv = parseArgv();
 
 /** help */
 if (argv.help) {
-  return console.log(i18n.help);
+  console.log(i18n.help);
+  process.exit(1);
 }
 
 var tmpl = argv.tmpl;
 tmpl = pathFn.resolve(tmpl);
 if (!tmpl) {
-  return console.log(i18n.must_specify_template);
+  console.log(i18n.must_specify_template);
+  process.exit(1);
 }
 
 /**
@@ -40,10 +43,10 @@ var output = argv.output;
 
 /** detect @dest */
 var template = fs.readFileSync(tmpl, 'utf8');
-var match = /@dest\(['"]([\s\S]+?)['"]\);?/.exec(template);
+var match = /@dest\(['"]([\s\S]+?)['"]\);?(?:\\r?\\n)*/.exec(template);
 if (match && match[0] && match[1]) {
   /** take care of template @dest */
-  template = template.replace(match[0], '@* ' + match[0] + ' *@');
+  template = template.replace(match[0], '');
 
   /**
    * not specified --no-output &&
@@ -67,8 +70,7 @@ var res = razor.advanceRender(tmpl, {}, template);
 /** --no-output just render it */
 if (argv.noOutput) {
   return;
-}
-else {
+} else {
   fs.writeFileSync(output, res);
   console.log(i18n.file_generated, output);
 }
@@ -78,7 +80,7 @@ function parseArgv() {
     tmpl: null,
     output: null
   };
-  var args = process.argv.slice(2); // node razor.js xxx
+  var args = process.argv.slice(2); // node razor xxx
 
   if (args.length === 0) {
     ret.help = true;
@@ -89,19 +91,15 @@ function parseArgv() {
     if (arg === '--help') {
       ret.help = true;
       continue;
-    }
-    else if (arg === '--no-output') {
+    } else if (arg === '--no-output') {
       ret.noOutput = true;
       continue;
-    }
-    else if (arg[0] !== '-') {
+    } else if (arg[0] !== '-') {
       if (!ret.tmpl) {
         ret.tmpl = arg;
-      }
-      else if (!ret.output) {
+      } else if (!ret.output) {
         ret.output = arg;
-      }
-      else {
+      } else {
         console.warn('warn : unkown argument %s', arg);
       }
     }
