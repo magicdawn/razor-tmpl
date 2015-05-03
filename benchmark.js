@@ -86,17 +86,16 @@ console.timeEnd('escape');
 
 /**
  * results:
- *   none escape: 123ms
- *   escape: 1416ms
+ *   none escape: 174ms
+ *   escape: 1630ms
  *
  * environment:{
  *   Cpu: 2.3GHz,
  *   Memory: 4GB,
- *   NodeVersion: iojs@1.0.3 x64 win7
+ *   NodeVersion: iojs@1.6.3 x64 win7
  * }
  *
- * comparably:
+ * for compare:
  *   http://cnodejs.org/topic/4f16442ccae1f4aa27001109
  *   https://github.com/fengmk2/fengmk2.github.com/tree/master/blog/2011/04/js-template-benchmarks
- *
  */
