@@ -16,6 +16,7 @@ exports.toCodes = function(tokens) {
   var codes = ['var $result = "";'];
   tokens.forEach(function(token) {
     var data = token.val;
+    var inner;
 
     switch (token.type) {
       case Tokens.TK_CODE_BLOCK:
@@ -27,9 +28,9 @@ exports.toCodes = function(tokens) {
       case Tokens.TK_VAR:
         /**
          * @(data)
-         * 不允许空值,就是值不存在的情况下会报错
+         * when error , output empty value
          */
-        var inner = format("try{$result+={0};}catch(e){ $result+= 'undefined';}", data);
+        inner = format("try{$result+={0};}catch(e){ $result+= '';}", data);
         codes.push(inner);
         break;
       case Tokens.TK_STRING:
@@ -37,7 +38,7 @@ exports.toCodes = function(tokens) {
          * div -> result+='div';
          * "div" -> result+='\"div\"';
          */
-        var inner = format("$result+='{0}';", escapeInNewFunction(data));
+        inner = format("$result+='{0}';", escapeInNewFunction(data));
         codes.push(inner);
         break;
       default:
@@ -78,7 +79,9 @@ exports = module.exports = Engine;
  */
 function Engine(options) {
 
+  // store original options first
   options = options || {};
+  this._options = options;
 
   /**
    * @{}
@@ -103,6 +106,13 @@ function Engine(options) {
    * enabled by default
    */
   this.easyLocals = options.easyLocals || true;
+
+  /**
+   * more initialize operations
+   */
+  if(this.init){
+    this.init();
+  }
 }
 
 /**
@@ -178,7 +188,7 @@ for (var idx = 0; idx < requires.length; idx++) {
     console.error('ES5 requireed. See es5-shim');
     throw new Error('requirements@' + idx + ' not satisified.');
   }
-};
+}
 
 /**
  * module dependencies
@@ -191,6 +201,7 @@ var util = require('./util');
 /**
  * expose default razor Engine
  */
+/* jshint -W120 */
 var razor = exports = module.exports = new Engine;
 
 /**
@@ -219,15 +230,15 @@ if (typeof jQuery !== 'undefined' && jQuery) {
   $ = jQuery;
 }
 // not work for browserify
-// else {
-//   try {
-//     $ = require('jquery');
-//   }
-//   catch (e) {
-//     // module not found
-//     return;
-//   }
-// }
+else {
+  try {
+    $ = require('jquery');
+  }
+  catch (e) {
+    // module not found
+    return;
+  }
+}
 
 if (!$) return;
 
@@ -282,7 +293,8 @@ function getTemplate($el) {
 
   var ret;
   if (el.tagName === 'SCRIPT') {
-    return ret = $el.html().trim();
+    ret = $el.html().trim();
+    return ret;
   }
   else {
     // see `razor-template` exists ?
@@ -290,7 +302,7 @@ function getTemplate($el) {
     if (ret) return ret;
 
     // not exists
-    var ret = $el.html().trim();
+    ret = $el.html().trim();
     var header = getLoopHeader($el);
     if (header) {
       ret = razor.symbol + header + ret + '}';
@@ -332,7 +344,11 @@ $.prototype.render = function(locals) {
   }
   return result;
 };
-},{"./index":3,"./util":6}],5:[function(require,module,exports){
+
+},{"./index":3,"./util":6,"jquery":"jquery"}],5:[function(require,module,exports){
+/* jshint -W093 */
+// return a=b;
+
 /**
  * module dependencies
  */
@@ -600,7 +616,7 @@ Parser.prototype.handleEach = function(i, fi) {
   //1.for(var i in items){ item = items[i];
   var loop = this.input.substring(fi_small + 1, sec_small); //item in items
   var inIndex = loop.indexOf('in');
-  var item = loop.substring(0, inIndex).trim()
+  var item = loop.substring(0, inIndex).trim();
   var items = loop.substring(inIndex + 2).trim();
 
   var loop_head = $.format(
@@ -712,7 +728,7 @@ exports.getRight = function(input, fi) {
 
     if (cur == right) {
       count--;
-      if (count == 0) {
+      if (count === 0) {
         return i;
       }
     }
@@ -775,11 +791,11 @@ exports.getDate = function(d) {
   day.length === 1 && (day = '0' + day);
 
   return exports.format('{0}-{1}-{2}', year, mon, day);
-}
+};
 },{}],7:[function(require,module,exports){
 module.exports={
   "name": "razor-tmpl",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "razor style template engine for JavaScript",
   "main": "./lib/node/index.js",
   "browser": "./lib/index.js",
@@ -788,7 +804,7 @@ module.exports={
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive",
-    "browser": "browserify lib/index.js --standalone razor > browser/razor-tmpl.js",
+    "browser": "browserify lib/index.js --standalone razor --external jquery > browser/razor-tmpl.js",
     "min": "uglifyjs browser/razor-tmpl.js > browser/razor-tmpl.min.js"
   },
   "repository": {

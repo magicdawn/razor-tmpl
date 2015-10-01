@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive",
-    "browser": "browserify lib/index.js --standalone razor > browser/razor-tmpl.js",
+    "browser": "browserify lib/index.js --standalone razor --external jquery > browser/razor-tmpl.js",
     "min": "uglifyjs browser/razor-tmpl.js > browser/razor-tmpl.min.js"
   },
   "repository": {
