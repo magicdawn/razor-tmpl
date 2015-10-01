@@ -804,8 +804,7 @@ module.exports={
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --recursive",
-    "browser": "browserify lib/index.js --standalone razor --external jquery > browser/razor-tmpl.js",
-    "min": "uglifyjs browser/razor-tmpl.js > browser/razor-tmpl.min.js"
+    "build": "browserify lib/index.js -s razor -x jquery > dist/razor-tmpl.js && uglifyjs dist/razor-tmpl.js > dist/razor-tmpl.min.js"
   },
   "repository": {
     "type": "git",
