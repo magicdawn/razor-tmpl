@@ -1,4 +1,6 @@
 # razor-tmpl
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/magicdawn/razor-tmpl.svg)](https://greenkeeper.io/)
 razor-style template engine for JavaScript. node.js & browser are supported.
 
 ## Install
