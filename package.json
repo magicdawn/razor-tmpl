@@ -22,8 +22,8 @@
   "author": "magicdawn",
   "license": "ISC",
   "devDependencies": {
-    "browserify": "^9.0.8",
-    "mocha": "^2.1.0",
+    "browserify": "^14.3.0",
+    "mocha": "^3.2.0",
     "uglifyjs": "^2.4.10"
   }
 }
